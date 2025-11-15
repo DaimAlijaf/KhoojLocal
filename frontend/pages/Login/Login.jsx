@@ -15,15 +15,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
 
-  // register state
+  // register state (simplified)
   const [regFullName, setRegFullName] = useState("");
   const [regEmail, setRegEmail] = useState("");
-  const [regPhone, setRegPhone] = useState("");
-  const [regRole, setRegRole] = useState("user"); // user | vendor
   const [regPassword, setRegPassword] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
   const [regShowPassword, setRegShowPassword] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(false);
   const [regLoading, setRegLoading] = useState(false);
   const [regError, setRegError] = useState("");
   const [regSuccess, setRegSuccess] = useState("");
@@ -32,17 +29,13 @@ export default function LoginPage() {
   const emailIsValid = (v) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).toLowerCase());
   const passwordIsStrong = (p) => p.length >= 8;
-  const phoneIsValid = (p) =>
-    p === "" || /^[0-9()+\s-]{7,20}$/.test(p.trim()); // optional basic check
 
   const registerFormIsValid = () => {
     return (
       regFullName.trim().length >= 2 &&
       emailIsValid(regEmail) &&
       passwordIsStrong(regPassword) &&
-      regPassword === regConfirm &&
-      phoneIsValid(regPhone) &&
-      agreeTerms
+      regPassword === regConfirm
     );
   };
 
@@ -55,18 +48,18 @@ export default function LoginPage() {
     try {
       // Simulate API call for now (no backend required)
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
+
       // Store user data in localStorage
       const user = {
         email,
-        name: email.split('@')[0],
-        loggedIn: true
+        name: email.split("@")[0],
+        loggedIn: true,
       };
-      localStorage.setItem('user', JSON.stringify(user));
-      
+      localStorage.setItem("user", JSON.stringify(user));
+
       console.log("Logged in:", user);
-      // Redirect to dashboard on successful login
-      navigate("/dashboard");
+      // Redirect to main page on successful login
+      navigate("/main");
     } catch (err) {
       setLoginError(err.response?.data?.message || "Login failed. Please try again.");
       console.error(err);
@@ -90,21 +83,16 @@ export default function LoginPage() {
       const payload = {
         name: regFullName.trim(),
         email: regEmail.trim().toLowerCase(),
-        phone: regPhone.trim() || undefined,
-        role: regRole,
         password: regPassword,
       };
 
       const res = await axios.post("/api/register", payload);
       setRegSuccess("Account created successfully! You can now log in.");
-      // clear form (optional)
+      // clear form
       setRegFullName("");
       setRegEmail("");
-      setRegPhone("");
-      setRegRole("user");
       setRegPassword("");
       setRegConfirm("");
-      setAgreeTerms(false);
 
       // switch to login after a short delay so user can see success
       setTimeout(() => setTab("login"), 1200);
@@ -117,7 +105,7 @@ export default function LoginPage() {
     }
   };
 
-  // small effect to reset messages when switching tabs
+  // reset messages when switching tabs
   useEffect(() => {
     setLoginError("");
     setRegError("");
@@ -125,9 +113,9 @@ export default function LoginPage() {
   }, [tab]);
 
   return (
-    <div className="flex min-h-screen w-full overflow-hidden">
-      {/* LEFT HERO (Full Height, Full Width on Left Side) */}
-      <aside className="hidden lg:flex flex-col justify-between bg-[#174f48] text-white p-10 w-1/2 h-screen">
+    <div className="flex min-h-screen w-full flex-col lg:flex-row">
+  {/* LEFT HERO - show only on large screens (lg+) to keep mobile clean) */}
+  <aside className="hidden lg:flex flex-1 flex-col justify-between bg-[#174f48] text-white p-10">
         <div className="flex items-center gap-3 text-lg font-medium">
           <MapPin className="h-5 w-5" />
           <span className="text-white">KhoojLocal</span>
@@ -143,22 +131,31 @@ export default function LoginPage() {
         </div>
       </aside>
 
+      {/* Compact top banner for medium screens (md) - hidden on lg */}
+      <div className="hidden md:flex lg:hidden items-center justify-between bg-[#174f48] text-white px-6 py-3">
+        <div className="flex items-center gap-3">
+          <MapPin className="h-4 w-4" />
+          <span className="font-medium">KhoojLocal</span>
+        </div>
+        <div className="text-sm">Connect with trusted local services</div>
+      </div>
+
       {/* RIGHT FORM SECTION */}
-      <main className="flex flex-1 items-center justify-center bg-gray-50 h-screen overflow-auto">
-        <div className="w-full max-w-md">
+      <main className="flex flex-1 items-start sm:items-center justify-center bg-gray-50 min-h-screen overflow-auto py-6 sm:py-8">
+        <div className="w-full max-w-md px-4 sm:px-0">
           {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-semibold">Welcome to KhoojLocal</h1>
-            <p className="mt-2 text-sm text-gray-500">
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-xl sm:text-2xl font-semibold">Welcome to KhoojLocal</h1>
+            <p className="mt-2 text-xs sm:text-sm text-gray-500">
               Sign in to your account or create a new one
             </p>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 mb-4 w-fit mx-auto bg-transparent rounded-md">
+          <div className="flex gap-2 mb-4 sm:mb-6 w-fit mx-auto bg-transparent rounded-md">
             <button
               onClick={() => setTab("login")}
-              className={`px-6 py-2 rounded-md text-sm font-medium border ${
+              className={`px-4 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium border ${
                 tab === "login"
                   ? "bg-white border-black shadow-[0_0_0_3px_rgba(0,0,0,0.12)]"
                   : "bg-gray-100 border-gray-200 text-gray-600"
@@ -168,7 +165,7 @@ export default function LoginPage() {
             </button>
             <button
               onClick={() => setTab("register")}
-              className={`px-6 py-2 rounded-md text-sm font-medium border ${
+              className={`px-4 sm:px-6 py-2 rounded-md text-xs sm:text-sm font-medium border ${
                 tab === "register"
                   ? "bg-white border-black shadow-[0_0_0_3px_rgba(0,0,0,0.12)]"
                   : "bg-gray-100 border-gray-200 text-gray-600"
@@ -179,12 +176,12 @@ export default function LoginPage() {
           </div>
 
           {/* Card */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-1">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-bold mb-1">
                 {tab === "login" ? "Login" : "Create an account"}
               </h2>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">
                 {tab === "login"
                   ? "Enter your credentials to access your account"
                   : "Fill out the fields below to create your account"}
@@ -251,9 +248,30 @@ export default function LoginPage() {
                   <div className="mt-4 text-center">
                     <a href="#" className="text-sm text-gray-500 underline hover:text-black">Forgot your password?</a>
                   </div>
+
+                  {/* Vendor Buttons */}
+                  <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                    <p className="text-center text-sm text-gray-600 mb-3">Are you a business owner?</p>
+                    
+                    {/* Login as Vendor */}
+                    <button
+                      onClick={() => navigate("/vendor-dashboard")}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-md text-sm font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md"
+                    >
+                      Login as Vendor
+                    </button>
+                    
+                    {/* Register as Vendor */}
+                    <button
+                      onClick={() => navigate("/vendor-register")}
+                      className="w-full bg-white border-2 border-[#174f48] text-[#174f48] py-3 rounded-md text-sm font-medium hover:bg-[#174f48] hover:text-white transition-colors"
+                    >
+                      Register as Vendor
+                    </button>
+                  </div>
                 </>
               ) : (
-                /* Advanced Register form */
+                /* Simplified Register form */
                 <>
                   {regError && (
                     <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded">{regError}</div>
@@ -292,31 +310,6 @@ export default function LoginPage() {
                       {regEmail && !emailIsValid(regEmail) && (
                         <p className="text-xs text-red-500 mt-1">Please enter a valid email.</p>
                       )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Phone (optional)</label>
-                      <input
-                        value={regPhone}
-                        onChange={(e) => setRegPhone(e.target.value)}
-                        placeholder="+1 555 555 5555"
-                        className="w-full border rounded-md px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-                      />
-                      {regPhone && !phoneIsValid(regPhone) && (
-                        <p className="text-xs text-red-500 mt-1">Please enter a valid phone number.</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Role</label>
-                      <select
-                        value={regRole}
-                        onChange={(e) => setRegRole(e.target.value)}
-                        className="w-full border rounded-md px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-600"
-                      >
-                        <option value="user">User</option>
-                        <option value="vendor">Vendor</option>
-                      </select>
                     </div>
 
                     <div>
@@ -362,27 +355,6 @@ export default function LoginPage() {
                       {regConfirm && regConfirm !== regPassword && (
                         <p className="text-xs text-red-500 mt-1">Passwords do not match.</p>
                       )}
-                    </div>
-
-                    <div className="flex items-start gap-2">
-                      <input
-                        id="terms"
-                        type="checkbox"
-                        checked={agreeTerms}
-                        onChange={(e) => setAgreeTerms(e.target.checked)}
-                        className="mt-1"
-                      />
-                      <label htmlFor="terms" className="text-sm">
-                        I agree to the{" "}
-                        <a href="#" className="underline text-sm">
-                          Terms of Service
-                        </a>{" "}
-                        and{" "}
-                        <a href="#" className="underline text-sm">
-                          Privacy Policy
-                        </a>
-                        .
-                      </label>
                     </div>
 
                     <button
