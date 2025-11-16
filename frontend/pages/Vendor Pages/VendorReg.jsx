@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { Store, Clock, Briefcase, Image, HelpCircle } from "lucide-react";
 
 /**
@@ -9,15 +10,13 @@ import { Store, Clock, Briefcase, Image, HelpCircle } from "lucide-react";
 
 /* --- Helpers & initial data --- */
 const SAMPLE_CATEGORIES = [
-  "Cafe / Bakery",
   "Restaurant",
-  "Salon / Spa",
-  "Gym / Fitness",
-  "Retail",
-  "Professional Services",
-  "Healthcare",
-  "Auto Services",
-  "Home Services",
+  "Bakery",
+  "Florist",
+  "Mechanic",
+  "Salon",
+  "Spa",
+  "Gym",
   "Other",
 ];
 
@@ -43,6 +42,8 @@ const initialState = {
   ownerName: "",
   ownerPhone: "",
   ownerEmail: "",
+  logoUrl: "",
+  bannerUrl: "",
   hours: defaultHours,
   services: [
     { id: 1, name: "Sample Service", durationMin: 30, price: 10.0 },
@@ -134,6 +135,10 @@ export default function VendorOnboarding() {
       if (!form.businessName?.trim()) e.businessName = "Business name is required";
       if (!form.address?.trim()) e.address = "Address is required";
       if (!form.phone?.trim()) e.phone = "Phone is required";
+      if (!form.ownerName?.trim()) e.ownerName = "Owner name is required";
+      if (!form.ownerEmail?.trim()) e.ownerEmail = "Owner email is required";
+      if (form.ownerEmail && !/^[^\s]+@[^\s]+\.[^\s]+$/.test(form.ownerEmail)) e.ownerEmail = "Owner email looks invalid";
+      if (!form.ownerPhone?.trim()) e.ownerPhone = "Owner phone is required";
       if (form.email && !/^[^\s]+@[^\s]+\.[^\s]+$/.test(form.email)) e.email = "Email looks invalid";
       if (!form.category) e.category = "Choose a category";
     }
@@ -162,7 +167,7 @@ export default function VendorOnboarding() {
   };
   const handleBack = () => setStep((s) => Math.max(1, s - 1));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e?.preventDefault();
     // final validation - validate key steps
     if (!validateStep(1) || !validateStep(3)) {
@@ -174,18 +179,51 @@ export default function VendorOnboarding() {
       }
       return;
     }
-    // Build payload (only illustrative — convert file previews to actual uploads when implementing backend)
-    const payload = { ...form, logoPreview, coverPreview };
-    console.log("Submit payload:", payload);
+    
+    try {
+      // Build payload for backend
+      const payload = {
+        businessName: form.businessName,
+        ownerName: form.ownerName,
+        email: form.ownerEmail,
+        password: "vendor123", // In production, collect this from a password field
+        phone: form.ownerPhone,
+        category: form.category,
+        address: {
+          street: form.address,
+          city: "",
+          state: "",
+          zipCode: "",
+          country: ""
+        },
+        description: form.description,
+        services: form.services.map(s => s.name).filter(n => n),
+        images: {
+          logo: form.logoUrl || "",
+          banner: form.bannerUrl || "",
+          gallery: []
+        }
+      };
 
-    // mock submit
-    alert("Vendor profile saved (mock). Check console for payload.");
-    localStorage.removeItem("vendor_onboard");
-    // reset
-    setForm(initialState);
-    setLogoPreview(null);
-    setCoverPreview(null);
-    setStep(1);
+      const res = await axios.post("http://localhost:5000/api/auth/vendor/register", payload);
+      
+      alert(`Registration successful! ${res.data.message}\n\nYour application is pending admin approval. You'll be notified once approved.`);
+      console.log("Vendor registered:", res.data);
+      
+      localStorage.removeItem("vendor_onboard");
+      // reset
+      setForm(initialState);
+      setLogoPreview(null);
+      setCoverPreview(null);
+      setStep(1);
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => navigate("/"), 2000);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || "Registration failed. Please try again.";
+      alert(`Error: ${errorMsg}`);
+      console.error("Registration error:", error);
+    }
   };
 
   /* --- Render helpers --- */
@@ -357,6 +395,42 @@ export default function VendorOnboarding() {
                   placeholder="A brief description of your business for customers"
                 />
               </div>
+
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Owner Information</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Owner Full Name *</label>
+                    <input 
+                      value={form.ownerName} 
+                      onChange={(e)=>update({ ownerName: e.target.value })} 
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
+                      placeholder="Enter owner's full name" 
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Owner Email *</label>
+                    <input 
+                      value={form.ownerEmail} 
+                      onChange={(e)=>update({ ownerEmail: e.target.value })} 
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
+                      placeholder="owner@email.com" 
+                      type="email"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Owner Phone Number *</label>
+                    <input 
+                      value={form.ownerPhone} 
+                      onChange={(e)=>update({ ownerPhone: e.target.value })} 
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
+                      placeholder="Enter owner's phone number" 
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -492,39 +566,37 @@ export default function VendorOnboarding() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Business Logo</label>
-                <div className="flex flex-col items-center">
-                  <div className="w-32 h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 overflow-hidden flex items-center justify-center mb-3">
-                    {logoPreview ? (
-                      <img src={logoPreview} alt="logo" className="w-full h-full object-cover" />
-                    ) : (
-                      <Image className="w-12 h-12 text-gray-400" />
-                    )}
+                <label className="block text-sm font-medium text-gray-700 mb-3">Business Logo URL</label>
+                <input 
+                  value={form.logoUrl} 
+                  onChange={(e)=>update({ logoUrl: e.target.value })} 
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
+                  placeholder="https://example.com/logo.jpg" 
+                  type="url"
+                />
+                {form.logoUrl && (
+                  <div className="mt-3 w-32 h-32 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden">
+                    <img src={form.logoUrl} alt="logo preview" className="w-full h-full object-cover" onError={(e) => e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'} />
                   </div>
-                  <label className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
-                    Choose File
-                    <input type="file" accept="image/*" onChange={handleLogo} className="hidden" />
-                  </label>
-                  <p className="mt-2 text-xs text-gray-500">Square image recommended</p>
-                </div>
+                )}
+                <p className="mt-2 text-xs text-gray-500">Enter a URL for your business logo (square recommended)</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Cover Image</label>
-                <div className="flex flex-col items-center">
-                  <div className="w-full h-32 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 overflow-hidden flex items-center justify-center mb-3">
-                    {coverPreview ? (
-                      <img src={coverPreview} alt="cover" className="w-full h-full object-cover" />
-                    ) : (
-                      <Image className="w-12 h-12 text-gray-400" />
-                    )}
+                <label className="block text-sm font-medium text-gray-700 mb-3">Banner Image URL</label>
+                <input 
+                  value={form.bannerUrl} 
+                  onChange={(e)=>update({ bannerUrl: e.target.value })} 
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
+                  placeholder="https://example.com/banner.jpg" 
+                  type="url"
+                />
+                {form.bannerUrl && (
+                  <div className="mt-3 w-full h-32 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden">
+                    <img src={form.bannerUrl} alt="banner preview" className="w-full h-full object-cover" onError={(e) => e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'} />
                   </div>
-                  <label className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors">
-                    Choose File
-                    <input type="file" accept="image/*" onChange={handleCover} className="hidden" />
-                  </label>
-                  <p className="mt-2 text-xs text-gray-500">16:9 ratio recommended</p>
-                </div>
+                )}
+                <p className="mt-2 text-xs text-gray-500">Enter a URL for your banner image (16:9 ratio recommended)</p>
               </div>
             </div>
 

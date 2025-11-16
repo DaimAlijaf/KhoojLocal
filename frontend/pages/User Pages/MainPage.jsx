@@ -1,16 +1,62 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Utensils, Sparkles, Home as HomeIcon, ShoppingBag, Star } from 'lucide-react';
 import Navbar from '../../components/Navbar';
+import axios from 'axios';
 
 export default function MainPage() {
   const navigate = useNavigate();
+  const [recommendedVendors, setRecommendedVendors] = useState([]);
+  const [filteredVendors, setFilteredVendors] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRecommendedVendors();
+  }, []);
+
+  useEffect(() => {
+    filterVendorsByCategory();
+  }, [selectedCategory, recommendedVendors]);
+
+  const fetchRecommendedVendors = async () => {
+    try {
+      console.log('Fetching vendors from API...');
+      const response = await axios.get('http://localhost:5000/api/vendors');
+      console.log('API Response:', response.data);
+      console.log('Total vendors received:', response.data.length);
+      setRecommendedVendors(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching recommended vendors:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      setLoading(false);
+    }
+  };
+
+  const filterVendorsByCategory = () => {
+    if (selectedCategory === 'all') {
+      setFilteredVendors(recommendedVendors.slice(0, 10));
+    } else {
+      const filtered = recommendedVendors.filter(v => v.category === selectedCategory);
+      setFilteredVendors(filtered);
+    }
+  };
+
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category);
+  };
 
   const categories = [
-    { name: 'Food & Drink', icon: Utensils, desc: 'Restaurants, cafes...' },
-    { name: 'Health & Beauty', icon: Sparkles, desc: 'Salons, spas...' },
-    { name: 'Home Services', icon: HomeIcon, desc: 'Plumbers, electricians...' },
-    { name: 'Shopping', icon: ShoppingBag, desc: 'Boutiques, stores...' },
+    { name: 'All Categories', value: 'all', icon: ShoppingBag, desc: 'Show all businesses' },
+    { name: 'Restaurant', value: 'Restaurant', icon: Utensils, desc: 'Dining & food services' },
+    { name: 'Bakery', value: 'Bakery', icon: Utensils, desc: 'Fresh baked goods' },
+    { name: 'Salon', value: 'Salon', icon: Sparkles, desc: 'Hair & beauty services' },
+    { name: 'Spa', value: 'Spa', icon: Sparkles, desc: 'Wellness & relaxation' },
+    { name: 'Gym', value: 'Gym', icon: Sparkles, desc: 'Fitness & training' },
+    { name: 'Florist', value: 'Florist', icon: ShoppingBag, desc: 'Flowers & arrangements' },
+    { name: 'Mechanic', value: 'Mechanic', icon: HomeIcon, desc: 'Auto repair services' },
+    { name: 'Other', value: 'Other', icon: HomeIcon, desc: 'Other services' },
   ];
 
   const recommendedServices = [
@@ -125,11 +171,18 @@ export default function MainPage() {
                 {categories.map((cat, idx) => (
                   <button
                     key={idx}
-                    className="w-full flex items-center gap-3 p-4 rounded-xl border bg-white border-gray-200 hover:border-indigo-500 hover:shadow-md transition text-left"
+                    onClick={() => handleCategoryClick(cat.value)}
+                    className={`w-full flex items-center gap-3 p-4 rounded-xl border transition text-left ${
+                      selectedCategory === cat.value
+                        ? 'bg-indigo-50 border-indigo-500 shadow-md'
+                        : 'bg-white border-gray-200 hover:border-indigo-500 hover:shadow-md'
+                    }`}
                   >
-                    <cat.icon className="h-5 w-5 text-indigo-600" />
+                    <cat.icon className={`h-5 w-5 ${selectedCategory === cat.value ? 'text-indigo-600' : 'text-gray-600'}`} />
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold">{cat.name}</h3>
+                      <h3 className={`text-sm font-semibold ${selectedCategory === cat.value ? 'text-indigo-700' : 'text-gray-800'}`}>
+                        {cat.name}
+                      </h3>
                       <p className="text-xs text-gray-500">{cat.desc}</p>
                     </div>
                   </button>
@@ -151,43 +204,75 @@ export default function MainPage() {
           <div className="lg:col-span-3 space-y-8">
             {/* Recommended For You */}
             <div>
-              <h2 className="text-2xl font-bold mb-6">Recommended For You</h2>
-              <div className="space-y-4">
-                {recommendedServices.map((service, idx) => (
-                  <div
-                    key={idx}
-                    className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border bg-white border-gray-200 hover:shadow-lg transition"
-                  >
-                    <img
-                      src={service.image}
-                      alt={service.name}
-                      className="w-full sm:w-32 h-32 object-cover rounded-xl"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <p className="text-xs text-indigo-600 font-medium uppercase mb-1">{service.category}</p>
-                          <h3 className="text-lg font-bold">{service.name}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">
+                  {selectedCategory === 'all' ? 'Recommended For You' : `${selectedCategory} Services`}
+                </h2>
+                <span className="text-sm text-gray-500">
+                  {filteredVendors.length} {filteredVendors.length === 1 ? 'business' : 'businesses'}
+                </span>
+              </div>
+              {loading ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : filteredVendors.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
+                  <p className="text-gray-500">
+                    {selectedCategory === 'all' 
+                      ? 'No approved vendors available yet.' 
+                      : `No ${selectedCategory} businesses available yet.`}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredVendors.map((vendor, idx) => (
+                    <div
+                      key={vendor._id}
+                      className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl border bg-white border-gray-200 hover:shadow-lg transition"
+                    >
+                      {vendor.images?.logo ? (
+                        <img
+                          src={vendor.images.logo}
+                          alt={vendor.businessName}
+                          className="w-full sm:w-32 h-32 object-cover rounded-xl"
+                        />
+                      ) : (
+                        <div className="w-full sm:w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-4xl font-bold">
+                          {vendor.businessName?.charAt(0).toUpperCase()}
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-4">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                          <span className="text-sm font-medium">{service.rating}</span>
-                          <span className="text-xs text-gray-500">({service.reviews} reviews)</span>
+                      )}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <p className="text-xs text-indigo-600 font-medium uppercase mb-1">{vendor.category}</p>
+                            <h3 className="text-lg font-bold">{vendor.businessName}</h3>
+                            <p className="text-sm text-gray-600 mt-1">{vendor.description || 'Quality service provider'}</p>
+                          </div>
                         </div>
-                        <button 
-                          onClick={() => navigate(`/business/${service.id}`, { state: { business: service } })}
-                          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition active:scale-95"
-                        >
-                          View Details
-                        </button>
+                        <div className="flex items-center justify-between mt-4">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                              <span className="text-sm font-medium">{vendor.rating || 4.5}</span>
+                              <span className="text-xs text-gray-500">({vendor.reviewCount || 0} reviews)</span>
+                            </div>
+                            {vendor.address?.city && (
+                              <span className="text-xs text-gray-500">{vendor.address.city}</span>
+                            )}
+                          </div>
+                          <button 
+                            onClick={() => navigate(`/business/${vendor._id}`, { state: { business: vendor } })}
+                            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition active:scale-95"
+                          >
+                            View Details
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Featured This Week */}

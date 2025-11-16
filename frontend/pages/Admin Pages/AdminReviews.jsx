@@ -74,10 +74,10 @@ export default function AdminReviews() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-gray-50">
       <AdminSidebar />
 
-      <main className="flex-1 overflow-auto">
+      <main className="lg:ml-64">
         <div className="p-3 sm:p-4 md:p-6 lg:p-8">
           {/* Header */}
           <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

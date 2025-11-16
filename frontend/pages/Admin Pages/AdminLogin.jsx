@@ -1,17 +1,39 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Admin sign in', { email, password });
-    // Navigate to admin dashboard after successful login
-    navigate('/AdminDashboard');
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/admin/login', {
+        email,
+        password,
+      });
+
+      // Store admin data and token
+      localStorage.setItem('admin', JSON.stringify(res.data));
+      localStorage.setItem('token', res.data.token);
+
+      console.log('Admin logged in:', res.data);
+      // Navigate to admin dashboard after successful login
+      navigate('/AdminDashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      console.error('Admin login error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -63,6 +85,12 @@ export default function AdminLogin() {
             <div>
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">Sign in to your account</h3>
             </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               {/* Email/Username Field */}
@@ -137,14 +165,38 @@ export default function AdminLogin() {
               {/* Sign In Button */}
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-[#174f48] text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-[#1a5c54] focus:outline-none focus:ring-2 focus:ring-[#174f48] focus:ring-offset-2 transition-colors duration-200"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 bg-[#174f48] text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-[#1a5c54] focus:outline-none focus:ring-2 focus:ring-[#174f48] focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
-                <span>Sign In</span>
+                <span>{loading ? 'Signing in...' : 'Sign In'}</span>
               </button>
             </form>
+
+            {/* User Login Link */}
+            <div className="mt-6 text-center">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-gray-50 text-gray-500">or</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <p className="text-sm text-gray-600">
+                  Not an admin?{' '}
+                  <button
+                    onClick={() => navigate('/')}
+                    className="font-medium text-[#174f48] hover:text-[#1a5c54] underline"
+                  >
+                    Login as User
+                  </button>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

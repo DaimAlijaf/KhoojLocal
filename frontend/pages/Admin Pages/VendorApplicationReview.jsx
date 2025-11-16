@@ -1,67 +1,41 @@
-import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
+import axios from 'axios';
 
 export default function VendorApplicationReview() {
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [activeTab, setActiveTab] = useState('details');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDate, setFilterDate] = useState('Filter by Date');
   const [filterCategory, setFilterCategory] = useState('Filter by Category');
 
-  const vendors = [
-    {
-      id: 1,
-      name: 'The Gourmet Kitchen',
-      category: 'Restaurant',
-      submitted: 'Oct 26, 2023',
-      status: 'Pending',
-      owner: 'Jane Doe',
-      email: 'jane.doe@gourmet.com',
-      phone: '0500 123-4567',
-      address: '123 Culinary Lane, Foodie City, FC 98765',
-      description: 'A fine dining establishment offering modern European cuisine with a focus on local, seasonal ingredients.',
-    },
-    {
-      id: 2,
-      name: 'Artisan Breads Co.',
-      category: 'Bakery',
-      submitted: 'Oct 25, 2023',
-      status: 'Pending',
-      owner: 'John Smith',
-      email: 'john@artisanbread.com',
-      phone: '0500 123-4567',
-      address: '456 Baker Street, Bread Town, BT 12345',
-      description: 'Handcrafted artisan breads and pastries made fresh daily.',
-    },
-    {
-      id: 3,
-      name: 'City Blooms Florist',
-      category: 'Florist',
-      submitted: 'Oct 25, 2023',
-      status: 'Pending',
-      owner: 'Mary Johnson',
-      email: 'mary@cityblooms.com',
-      phone: '0500 123-4567',
-      address: '789 Flower Ave, Garden City, GC 67890',
-      description: 'Beautiful floral arrangements for all occasions.',
-    },
-    {
-      id: 4,
-      name: 'Quick Fix Auto',
-      category: 'Mechanic',
-      submitted: 'Oct 24, 2023',
-      status: 'Pending',
-      owner: 'Bob Wilson',
-      email: 'bob@quickfixauto.com',
-      phone: '0500 123-4567',
-      address: '321 Auto Lane, Motor City, MC 54321',
-      description: 'Fast and reliable auto repair services.',
-    },
-  ];
+  // Fetch pending vendors from backend
+  useEffect(() => {
+    fetchPendingVendors();
+  }, []);
+
+  const fetchPendingVendors = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/admin/vendors/pending', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setVendors(response.data);
+    } catch (error) {
+      console.error('Error fetching pending vendors:', error);
+      alert(error.response?.data?.message || 'Failed to fetch vendors');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredVendors = vendors.filter(vendor => {
-    const matchesSearch = vendor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         vendor.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = 
+      vendor.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vendor.category.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesCategory = 
       filterCategory === 'Filter by Category' || 
@@ -70,19 +44,47 @@ export default function VendorApplicationReview() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleApprove = () => {
-    alert(`Approved ${selectedVendor.name}`);
+  const handleApprove = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `http://localhost:5000/api/admin/vendors/${selectedVendor._id}`,
+        { status: 'Approved' },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      alert(`✅ Approved ${selectedVendor.businessName}! They can now login.`);
+      setSelectedVendor(null);
+      fetchPendingVendors(); // Refresh list
+    } catch (error) {
+      console.error('Error approving vendor:', error);
+      alert(error.response?.data?.message || 'Failed to approve vendor');
+    }
   };
 
-  const handleReject = () => {
-    alert(`Rejected ${selectedVendor.name}`);
+  const handleReject = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `http://localhost:5000/api/admin/vendors/${selectedVendor._id}`,
+        { status: 'Rejected' },
+        { headers: { Authorization: `Bearer ${token}` }}
+      );
+      
+      alert(`❌ Rejected ${selectedVendor.businessName}`);
+      setSelectedVendor(null);
+      fetchPendingVendors(); // Refresh list
+    } catch (error) {
+      console.error('Error rejecting vendor:', error);
+      alert(error.response?.data?.message || 'Failed to reject vendor');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-gray-50">
       <AdminSidebar />
 
-      <main className="flex-1 overflow-auto">
+      <main className="lg:ml-64">
         <div className="p-3 sm:p-4 md:p-6 lg:p-8">
           {/* Header */}
           <div className="mb-4 sm:mb-6">
@@ -155,70 +157,92 @@ export default function VendorApplicationReview() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredVendors.map((vendor) => (
-                        <tr
-                          key={vendor.id}
-                          onClick={() => setSelectedVendor(vendor)}
-                          className={`cursor-pointer transition-colors ${
-                            selectedVendor?.id === vendor.id
-                              ? 'bg-purple-50'
-                              : 'hover:bg-gray-50'
-                          }`}
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{vendor.name}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-700">{vendor.category}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-700">{vendor.submitted}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-600">
-                              {vendor.status}
-                            </span>
+                      {loading ? (
+                        <tr>
+                          <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                            Loading vendors...
                           </td>
                         </tr>
-                      ))}
+                      ) : filteredVendors.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
+                            No pending vendors found
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredVendors.map((vendor) => (
+                          <tr
+                            key={vendor._id}
+                            onClick={() => setSelectedVendor(vendor)}
+                            className={`cursor-pointer transition-colors ${
+                              selectedVendor?._id === vendor._id
+                                ? 'bg-purple-50'
+                                : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{vendor.businessName}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-700">{vendor.category}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-700">
+                                {new Date(vendor.createdAt).toLocaleDateString()}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-600">
+                                {vendor.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
 
                 {/* Card View - Mobile */}
                 <div className="md:hidden divide-y divide-gray-200">
-                  {filteredVendors.map((vendor) => (
-                    <div
-                      key={vendor.id}
-                      onClick={() => setSelectedVendor(vendor)}
-                      className={`p-4 cursor-pointer transition-colors ${
-                        selectedVendor?.id === vendor.id
-                          ? 'bg-indigo-50'
-                          : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-gray-900 text-sm">{vendor.name}</h3>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          {vendor.status}
-                        </span>
+                  {loading ? (
+                    <div className="p-8 text-center text-gray-500">Loading vendors...</div>
+                  ) : filteredVendors.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500">No pending vendors found</div>
+                  ) : (
+                    filteredVendors.map((vendor) => (
+                      <div
+                        key={vendor._id}
+                        onClick={() => setSelectedVendor(vendor)}
+                        className={`p-4 cursor-pointer transition-colors ${
+                          selectedVendor?._id === vendor._id
+                            ? 'bg-indigo-50'
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-medium text-gray-900 text-sm">{vendor.businessName}</h3>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            {vendor.status}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            {vendor.category}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {new Date(vendor.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                          </svg>
-                          {vendor.category}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {vendor.submitted}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
 
                 {/* Pagination */}
@@ -243,7 +267,7 @@ export default function VendorApplicationReview() {
                     <div className="p-6 border-b border-gray-200 bg-gray-50">
                       <div className="flex items-start justify-between mb-1">
                         <div>
-                          <h2 className="text-xl font-bold text-gray-900">{selectedVendor.name}</h2>
+                          <h2 className="text-xl font-bold text-gray-900">{selectedVendor.businessName}</h2>
                           <p className="text-sm text-gray-600 mt-1">Application Details</p>
                         </div>
                         <span className="inline-flex px-3 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-600 flex-shrink-0">
@@ -294,7 +318,7 @@ export default function VendorApplicationReview() {
                         <div className="space-y-5">
                           <div>
                             <label className="block text-xs font-medium text-gray-500 mb-1">Owner Name</label>
-                            <p className="text-sm text-gray-900">{selectedVendor.owner}</p>
+                            <p className="text-sm text-gray-900">{selectedVendor.ownerName}</p>
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-500 mb-1">Contact Email</label>
@@ -310,12 +334,58 @@ export default function VendorApplicationReview() {
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-500 mb-1">Business Address</label>
-                            <p className="text-sm text-gray-900">{selectedVendor.address}</p>
+                            <p className="text-sm text-gray-900">
+                              {selectedVendor.address?.street && `${selectedVendor.address.street}, `}
+                              {selectedVendor.address?.city && `${selectedVendor.address.city}, `}
+                              {selectedVendor.address?.state && `${selectedVendor.address.state} `}
+                              {selectedVendor.address?.zipCode && selectedVendor.address.zipCode}
+                            </p>
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
-                            <p className="text-sm text-gray-700 leading-relaxed">{selectedVendor.description}</p>
+                            <p className="text-sm text-gray-700 leading-relaxed">{selectedVendor.description || 'No description provided'}</p>
                           </div>
+                          {selectedVendor.services && selectedVendor.services.length > 0 && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-1">Services Offered</label>
+                              <div className="flex flex-wrap gap-2">
+                                {selectedVendor.services.map((service, idx) => (
+                                  <span key={idx} className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded">
+                                    {service}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {selectedVendor.images && (selectedVendor.images.logo || selectedVendor.images.banner || selectedVendor.images.gallery?.length > 0) && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-500 mb-2">Business Images</label>
+                              <div className="space-y-3">
+                                {selectedVendor.images.logo && (
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">Logo</p>
+                                    <img src={selectedVendor.images.logo} alt="Logo" className="w-32 h-32 object-cover rounded-lg border border-gray-200" />
+                                  </div>
+                                )}
+                                {selectedVendor.images.banner && (
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">Banner</p>
+                                    <img src={selectedVendor.images.banner} alt="Banner" className="w-full h-48 object-cover rounded-lg border border-gray-200" />
+                                  </div>
+                                )}
+                                {selectedVendor.images.gallery && selectedVendor.images.gallery.length > 0 && (
+                                  <div>
+                                    <p className="text-xs text-gray-500 mb-1">Gallery</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {selectedVendor.images.gallery.map((img, idx) => (
+                                        <img key={idx} src={img} alt={`Gallery ${idx + 1}`} className="w-full h-32 object-cover rounded-lg border border-gray-200" />
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
 

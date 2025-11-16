@@ -1,98 +1,19 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, MapPin, Star, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { Search, MapPin, Star, SlidersHorizontal, X } from 'lucide-react';
 import Navbar from '../../components/Navbar';
-
-const BUSINESSES = [
-  {
-    id: 1,
-    name: "The Daily Grind",
-    rating: 4.8,
-    distance: "1.2 km away",
-    distanceKm: 1.2,
-    price: "₹₹",
-    priceValue: 250,
-    category: 'Coffee Shops',
-    isOpen: true,
-    image: "https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400",
-  },
-  {
-    id: 2,
-    name: "Aroma Mocha Cafe",
-    rating: 4.5,
-    distance: "2.5 km away",
-    distanceKm: 2.5,
-    price: "₹₹₹",
-    priceValue: 450,
-    category: 'Coffee Shops',
-    isOpen: false,
-    image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400",
-  },
-  {
-    id: 3,
-    name: "The Cozy Bean",
-    rating: 4.9,
-    distance: "0.8 km away",
-    distanceKm: 0.8,
-    price: "₹₹",
-    priceValue: 300,
-    category: 'Coffee Shops',
-    isOpen: true,
-    image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400",
-  },
-  {
-    id: 4,
-    name: "Brew & Bites",
-    rating: 4.7,
-    distance: "1.5 km away",
-    distanceKm: 1.5,
-    price: "₹₹",
-    priceValue: 220,
-    category: 'Coffee Shops',
-    isOpen: true,
-    image: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400",
-  },
-  {
-    id: 5,
-    name: "Java Junction",
-    rating: 4.6,
-    distance: "3.0 km away",
-    distanceKm: 3.0,
-    price: "₹",
-    priceValue: 120,
-    category: 'Coffee Shops',
-    isOpen: false,
-    image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400",
-  },
-  {
-    id: 6,
-    name: "Espresso Express",
-    rating: 4.8,
-    distance: "1.8 km away",
-    distanceKm: 1.8,
-    price: "₹₹₹",
-    priceValue: 500,
-    category: 'Coffee Shops',
-    isOpen: true,
-    image: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400",
-  },
-];
+import axios from 'axios';
 
 function SidebarFilters({
-  distance,
-  setDistance,
   selectedCategory,
   setSelectedCategory,
   rating,
   setRating,
-  maxPrice,
-  setMaxPrice,
-  openNow,
-  setOpenNow,
   onReset,
   isMobileOpen,
   onMobileClose,
 }) {
+  const categories = ['Restaurant', 'Bakery', 'Salon', 'Gym', 'Other'];
 
   const FilterContent = () => (
     <>
@@ -105,33 +26,28 @@ function SidebarFilters({
         )}
       </div>
 
-      {/* Distance */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-medium text-gray-900">Distance</p>
-          <p className="text-sm text-gray-600">{distance}km</p>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="50"
-          value={distance}
-          onChange={(e) => setDistance(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
-        />
-      </div>
-
       {/* Category */}
       <div className="mb-6">
         <h4 className="text-sm font-medium text-gray-900 mb-3">Category</h4>
         <div className="space-y-2">
-          {['Coffee Shops', 'Restaurants', 'Salons', 'Gyms'].map((category) => (
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="radio"
+              name="category"
+              checked={!selectedCategory}
+              onChange={() => setSelectedCategory('')}
+              className="w-4 h-4"
+            />
+            <span className="text-sm text-gray-700">All Categories</span>
+          </label>
+          {categories.map((category) => (
             <label key={category} className="flex items-center gap-3 cursor-pointer">
               <input
-                type="checkbox"
+                type="radio"
+                name="category"
                 checked={selectedCategory === category}
                 onChange={() => setSelectedCategory(category)}
-                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                className="w-4 h-4"
               />
               <span className="text-sm text-gray-700">{category}</span>
             </label>
@@ -141,7 +57,7 @@ function SidebarFilters({
 
       {/* Rating */}
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Rating</h4>
+        <h4 className="text-sm font-medium text-gray-900 mb-3">Minimum Rating</h4>
         <div className="flex items-center gap-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
@@ -150,87 +66,51 @@ function SidebarFilters({
               className={`h-6 w-6 cursor-pointer ${
                 star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
               }`}
-              aria-label={`${star} star`}
-              role="img"
             />
           ))}
         </div>
       </div>
 
-      {/* Price filter (slider) */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-sm font-medium text-gray-900">Price</h4>
-          <p className="text-sm text-gray-700 font-semibold">₹0 – ₹{maxPrice}</p>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="1500"
-          step="50"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(Number(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
-          aria-label="Max price"
-        />
-        <div className="mt-2 flex justify-between text-xs text-gray-500">
-          <span>₹0</span>
-          <span>₹500</span>
-          <span>₹1,000</span>
-          <span>₹1,500</span>
-        </div>
-      </div>
-
-      {/* Open Now */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium text-gray-900">Open Now</h4>
-          <button
-            onClick={() => setOpenNow(!openNow)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-              openNow ? 'bg-violet-600' : 'bg-gray-200'
-            }`}
+      {/* Apply/Reset Buttons */}
+      {isMobileOpen && (
+        <>
+          <button 
+            onClick={onMobileClose}
+            className="w-full bg-violet-600 text-white py-3 rounded-lg font-semibold hover:bg-violet-700 transition mb-2"
           >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                openNow ? 'translate-x-6' : 'translate-x-1'
-              }`}
-            />
+            Apply Filters
           </button>
-        </div>
-      </div>
+          <button
+            onClick={() => {
+              onReset();
+              onMobileClose();
+            }}
+            className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
+          >
+            Reset
+          </button>
+        </>
+      )}
 
-      {/* Apply Filters Button */}
-      <button 
-        onClick={onMobileClose}
-        className="w-full bg-violet-600 text-white py-3 rounded-lg font-semibold hover:bg-violet-700 transition mb-2"
-      >
-        Apply Filters
-      </button>
-
-      {/* Reset Button */}
-      <button
-        onClick={() => {
-          onReset();
-          onMobileClose && onMobileClose();
-        }}
-        className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
-      >
-        Reset
-      </button>
+      {!isMobileOpen && (
+        <button
+          onClick={onReset}
+          className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
+        >
+          Reset Filters
+        </button>
+      )}
     </>
   );
 
   return (
     <>
-      {/* Desktop Sidebar */}
       <aside className="hidden lg:block lg:col-span-1">
         <div className="sticky top-20 rounded-xl bg-white p-6 shadow-sm border border-gray-200">
           <FilterContent />
         </div>
       </aside>
 
-      {/* Mobile Filter Drawer */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={onMobileClose} />
@@ -245,35 +125,35 @@ function SidebarFilters({
 
 function BusinessCard({ business }) {
   const navigate = useNavigate();
+  
   return (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
-      <img
-        src={business.image}
-        alt={business.name}
-        className="w-full h-48 object-cover"
-      />
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition">
+      <div className="w-full h-48 bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
+        <span className="text-4xl font-bold text-violet-600">{business.businessName?.charAt(0) || 'B'}</span>
+      </div>
       <div className="p-4 sm:p-5">
-        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3">{business.name}</h3>
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">{business.businessName}</h3>
+        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{business.description || 'No description available'}</p>
         
         <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600 mb-4">
           <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="font-medium text-gray-900">{business.rating}</span>
+            <span className="font-medium text-gray-900">{business.rating || 0}</span>
           </div>
           
           <div className="flex items-center gap-1">
             <MapPin className="h-4 w-4" />
-            <span>{business.distance}</span>
+            <span>{business.address?.city || 'N/A'}</span>
           </div>
           
-          <div className="flex items-center">
-            <span className="font-semibold text-gray-900">{business.price}</span>
-          </div>
+          <span className="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">
+            {business.category}
+          </span>
         </div>
 
         <button
           className="w-full bg-violet-600 text-white py-3 rounded-lg font-medium hover:bg-violet-700 transition active:scale-95"
-          onClick={() => navigate(`/business/${business.id}`, { state: { business } })}
+          onClick={() => navigate(`/business/${business._id}`, { state: { business } })}
         >
           View Details
         </button>
@@ -288,10 +168,11 @@ function SkeletonCard() {
       <div className="w-full h-48 bg-gray-200" />
       <div className="p-5">
         <div className="h-6 w-3/4 bg-gray-200 rounded mb-3" />
+        <div className="h-4 w-full bg-gray-200 rounded mb-2" />
+        <div className="h-4 w-2/3 bg-gray-200 rounded mb-4" />
         <div className="flex items-center gap-4 mb-4">
           <div className="h-4 w-16 bg-gray-200 rounded" />
           <div className="h-4 w-20 bg-gray-200 rounded" />
-          <div className="h-4 w-8 bg-gray-200 rounded" />
         </div>
         <div className="h-10 w-full bg-gray-200 rounded-lg" />
       </div>
@@ -301,61 +182,78 @@ function SkeletonCard() {
 
 export default function SearchResults() {
   const location = useLocation();
-  const [businesses] = useState(BUSINESSES);
+  const navigate = useNavigate();
+  const params = new URLSearchParams(location.search);
+  const initialQuery = params.get('query') || params.get('q') || '';
+
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [rating, setRating] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // URL query (?q=)
-  const params = new URLSearchParams(location.search);
-  const initialQuery = params.get('q') || '';
-  const [query, setQuery] = useState(initialQuery);
+  // Fetch vendors from backend
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        setLoading(true);
+        const params = {};
+        if (searchQuery) params.search = searchQuery;
+        if (selectedCategory) params.category = selectedCategory;
 
-  // Filters state
-  const [distance, setDistance] = useState(10);
-  const [selectedCategory, setSelectedCategory] = useState('Coffee Shops');
-  const [rating, setRating] = useState(4);
-  const [maxPrice, setMaxPrice] = useState(1500);
-  const [openNow, setOpenNow] = useState(false);
+        const response = await axios.get('http://localhost:5000/api/vendors', { params });
+        setBusinesses(response.data);
+      } catch (error) {
+        console.error('Error fetching vendors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchVendors();
+  }, [searchQuery, selectedCategory]);
 
   const resetFilters = () => {
-    setDistance(10);
-    setSelectedCategory('Coffee Shops');
-    setRating(4);
-    setMaxPrice(1500);
-    setOpenNow(false);
+    setSelectedCategory('');
+    setRating(0);
   };
 
-  // Derived filtered list
+  // Filter by rating on frontend
   const filtered = useMemo(() => {
-    return businesses.filter((b) => {
-      const matchesQuery = query
-        ? b.name.toLowerCase().includes(query.toLowerCase())
-        : true;
-      const matchesCategory = selectedCategory ? b.category === selectedCategory : true;
-      const matchesRating = b.rating >= rating;
-      const withinDistance = typeof b.distanceKm === 'number' ? b.distanceKm <= distance : true;
-      const withinPrice = typeof b.priceValue === 'number' ? b.priceValue <= maxPrice : true;
-      const matchesOpen = openNow ? b.isOpen : true;
-      return matchesQuery && matchesCategory && matchesRating && withinDistance && withinPrice && matchesOpen;
-    });
-  }, [businesses, query, selectedCategory, rating, distance, maxPrice, openNow]);
+    return businesses.filter((b) => b.rating >= rating);
+  }, [businesses, rating]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setSearchQuery(e.target.search.value);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              name="search"
+              defaultValue={searchQuery}
+              placeholder="Search businesses..."
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-600 focus:border-transparent"
+            />
+          </div>
+        </form>
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
           <SidebarFilters
-            distance={distance}
-            setDistance={setDistance}
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
             rating={rating}
             setRating={setRating}
-            maxPrice={maxPrice}
-            setMaxPrice={setMaxPrice}
-            openNow={openNow}
-            setOpenNow={setOpenNow}
             onReset={resetFilters}
             isMobileOpen={mobileFiltersOpen}
             onMobileClose={() => setMobileFiltersOpen(false)}
@@ -375,27 +273,32 @@ export default function SearchResults() {
 
             <div className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                {`Showing results for '${query || selectedCategory}'`}
+                {searchQuery ? `Results for "${searchQuery}"` : selectedCategory ? selectedCategory : 'All Businesses'}
               </h1>
-              <p className="text-gray-600">{`Found ${filtered.length} businesses near you`}</p>
+              <p className="text-gray-600">{`Found ${filtered.length} businesses`}</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {filtered.map((business) => (
-                <BusinessCard key={business.id} business={business} />
-              ))}
-              
-              {/* Loading placeholders */}
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </div>
-
-            {/* Loading indicator */}
-            <div className="flex justify-center items-center gap-2 mt-8 text-gray-600">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-violet-600"></div>
-              <span className="text-sm sm:text-base">Loading more...</span>
-            </div>
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : filtered.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                {filtered.map((business) => (
+                  <BusinessCard key={business._id} business={business} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-600 text-lg">No businesses found matching your criteria.</p>
+                <button
+                  onClick={resetFilters}
+                  className="mt-4 px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            )}
           </section>
         </div>
       </main>

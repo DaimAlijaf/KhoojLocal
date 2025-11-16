@@ -25,6 +25,14 @@ export default function LoginPage() {
   const [regError, setRegError] = useState("");
   const [regSuccess, setRegSuccess] = useState("");
 
+  // Vendor login state
+  const [showVendorLogin, setShowVendorLogin] = useState(false);
+  const [vendorEmail, setVendorEmail] = useState("");
+  const [vendorPassword, setVendorPassword] = useState("");
+  const [vendorShowPassword, setVendorShowPassword] = useState(false);
+  const [vendorLoading, setVendorLoading] = useState(false);
+  const [vendorError, setVendorError] = useState("");
+
   // Helpers / validation
   const emailIsValid = (v) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).toLowerCase());
@@ -46,16 +54,19 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Simulate API call for now (no backend required)
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Store user data in localStorage
-      const user = {
+      // Call backend API
+      const res = await axios.post("http://localhost:5000/api/auth/user/login", {
         email,
-        name: email.split("@")[0],
+        password,
+      });
+
+      // Store user data and token in localStorage
+      const user = {
+        ...res.data,
         loggedIn: true,
       };
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", res.data.token);
 
       console.log("Logged in:", user);
       // Redirect to main page on successful login
@@ -84,10 +95,16 @@ export default function LoginPage() {
         name: regFullName.trim(),
         email: regEmail.trim().toLowerCase(),
         password: regPassword,
+        phone: "", // Optional field
       };
 
-      const res = await axios.post("/api/register", payload);
+      const res = await axios.post("http://localhost:5000/api/auth/user/register", payload);
       setRegSuccess("Account created successfully! You can now log in.");
+      
+      // Store token and user data
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      
       // clear form
       setRegFullName("");
       setRegEmail("");
@@ -105,12 +122,42 @@ export default function LoginPage() {
     }
   };
 
+  // VENDOR LOGIN handler
+  const handleVendorLogin = async (e) => {
+    e.preventDefault();
+    setVendorError("");
+    setVendorLoading(true);
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/vendor/login", {
+        email: vendorEmail,
+        password: vendorPassword,
+      });
+
+      const vendor = {
+        ...res.data,
+        loggedIn: true,
+      };
+      localStorage.setItem("vendor", JSON.stringify(vendor));
+      localStorage.setItem("token", res.data.token);
+
+      console.log("Vendor logged in:", vendor);
+      navigate("/vendor-dashboard");
+    } catch (err) {
+      setVendorError(err.response?.data?.message || "Login failed. Please try again.");
+      console.error(err);
+    } finally {
+      setVendorLoading(false);
+    }
+  };
+
   // reset messages when switching tabs
   useEffect(() => {
     setLoginError("");
     setRegError("");
     setRegSuccess("");
-  }, [tab]);
+    setVendorError("");
+  }, [tab, showVendorLogin]);
 
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row">
@@ -255,7 +302,7 @@ export default function LoginPage() {
                     
                     {/* Login as Vendor */}
                     <button
-                      onClick={() => navigate("/vendor-dashboard")}
+                      onClick={() => setShowVendorLogin(true)}
                       className="w-full bg-[#174f48] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1a5c54] transition-all shadow-md"
                     >
                       Login as Vendor
@@ -382,6 +429,93 @@ export default function LoginPage() {
         </svg>
         <span>Admin Login</span>
       </button>
+
+      {/* Vendor Login Modal */}
+      {showVendorLogin && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6 relative">
+            <button
+              onClick={() => setShowVendorLogin(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Vendor Login</h2>
+              <p className="text-sm text-gray-500 mt-1">Enter your credentials to access your business dashboard</p>
+            </div>
+
+            {vendorError && (
+              <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded">{vendorError}</div>
+            )}
+
+            <form onSubmit={handleVendorLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    type="email"
+                    value={vendorEmail}
+                    onChange={(e) => setVendorEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#174f48] focus:border-transparent outline-none text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <input
+                    type={vendorShowPassword ? "text" : "password"}
+                    value={vendorPassword}
+                    onChange={(e) => setVendorPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#174f48] focus:border-transparent outline-none text-sm"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVendorShowPassword(!vendorShowPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  >
+                    {vendorShowPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={vendorLoading}
+                className="w-full bg-[#174f48] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1a5c54] disabled:opacity-60 transition-all"
+              >
+                {vendorLoading ? "Logging in..." : "Sign In"}
+              </button>
+            </form>
+
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Don't have a vendor account?{" "}
+                <button
+                  onClick={() => {
+                    setShowVendorLogin(false);
+                    navigate("/vendor-register");
+                  }}
+                  className="text-[#174f48] font-medium hover:underline"
+                >
+                  Register here
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

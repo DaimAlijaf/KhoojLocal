@@ -5,6 +5,7 @@ import LoginPage from './pages/Login/Login';
 import AdminLogin from './pages/Admin Pages/AdminLogin';
 import AdminDashboard from './pages/Admin Pages/AdminDashboard';
 import VendorApplicationReview from './pages/Admin Pages/VendorApplicationReview';
+import VendorManagement from './pages/Admin Pages/VendorManagement';
 import AdminReviews from './pages/Admin Pages/AdminReviews';
 import AdminUsers from './pages/Admin Pages/AdminUsers';
 import AdminAnalysis from './pages/Admin Pages/AdminAnalysis';
@@ -29,6 +30,7 @@ function App() {
         <Route path="/AdminLogin" element={<AdminLogin />} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
         <Route path="/admin/vendors" element={<VendorApplicationReview />} />
+        <Route path="/admin/vendor-management" element={<VendorManagement />} />
         <Route path="/admin/reviews" element={<AdminReviews />} />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/analytics" element={<AdminAnalysis />} />

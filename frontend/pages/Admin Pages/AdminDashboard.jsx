@@ -1,23 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/AdminSidebar';
+import axios from 'axios';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('pending');
   const [chartPeriod, setChartPeriod] = useState('30days');
   const [hoveredBar, setHoveredBar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      totalUsers: 0,
+      activeUsers: 0,
+      activeVendors: 0,
+      pendingApprovals: 0,
+      flaggedReviews: 0
+    },
+    pendingVendors: [],
+    weeklyGrowth: []
+  });
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/auth/admin/dashboard-stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDashboardData(response.data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      alert(error.response?.data?.message || 'Failed to fetch dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const stats = [
-    { title: 'Total', subtitle: 'Users', value: '12,450', meta: '+2.5%', icon: 'group', trend: 'up' },
-    { title: 'Active', subtitle: 'Vendors', value: '8,620', meta: '+1.6%', icon: 'store', trend: 'up' },
-    { title: 'Pending', subtitle: 'Approvals', value: '15', meta: '+5 today', icon: 'schedule', trend: 'down' },
-    { title: 'Flagged', subtitle: 'Reviews', value: '8', meta: '+3 today', icon: 'flag', trend: 'up' },
+    { 
+      title: 'Total', 
+      subtitle: 'Users', 
+      value: dashboardData.stats.totalUsers.toLocaleString(), 
+      meta: `${dashboardData.stats.activeUsers} active`, 
+      icon: 'group', 
+      trend: 'up' 
+    },
+    { 
+      title: 'Active', 
+      subtitle: 'Vendors', 
+      value: dashboardData.stats.activeVendors.toLocaleString(), 
+      meta: 'Approved', 
+      icon: 'store', 
+      trend: 'up' 
+    },
+    { 
+      title: 'Pending', 
+      subtitle: 'Approvals', 
+      value: dashboardData.stats.pendingApprovals.toString(), 
+      meta: 'Awaiting review', 
+      icon: 'schedule', 
+      trend: dashboardData.stats.pendingApprovals > 0 ? 'down' : 'up' 
+    },
+    { 
+      title: 'Flagged', 
+      subtitle: 'Reviews', 
+      value: dashboardData.stats.flaggedReviews.toString(), 
+      meta: 'Need attention', 
+      icon: 'flag', 
+      trend: dashboardData.stats.flaggedReviews > 0 ? 'up' : 'down' 
+    },
   ];
 
-  const pending = [
-    { name: 'The Artisan Bakery', meta: 'Category: Cafe | Submitted: 2 days ago' },
-    { name: 'Urban Threads Boutique', meta: 'Category: Fashion | Submitted: 3 days ago' },
-    { name: 'Gourmet Grove', meta: 'Category: Restaurant | Submitted: 5 days ago' },
-  ];
+  const pending = dashboardData.pendingVendors.map(vendor => ({
+    id: vendor._id,
+    name: vendor.businessName,
+    meta: `Category: ${vendor.category} | Submitted: ${new Date(vendor.createdAt).toLocaleDateString()}`
+  }));
 
   const alerts = [
     { title: 'System maintenance scheduled', time: 'June 25, 2024 at 10:00 PM UTC', icon: '⚙️', color: 'bg-orange-100' },
@@ -26,38 +89,65 @@ export default function AdminDashboard() {
   ];
 
   const chartDataSets = {
-    '30days': [
-      { week: 'Week 1', height: '30%', value: 1845, users: 1845 },
-      { week: 'Week 2', height: '50%', value: 3120, users: 3120 },
-      { week: 'Week 3', height: '70%', value: 4380, users: 4380 },
-      { week: 'Week 4', height: '100%', value: 6250, users: 6250 },
-    ],
-    '3months': [
-      { week: 'Month 1', height: '40%', value: 8420, users: 8420 },
-      { week: 'Month 2', height: '65%', value: 13650, users: 13650 },
-      { week: 'Month 3', height: '100%', value: 21000, users: 21000 },
-    ],
-    '6months': [
-      { week: 'Jan-Feb', height: '25%', value: 15200, users: 15200 },
-      { week: 'Mar-Apr', height: '45%', value: 27800, users: 27800 },
-      { week: 'May-Jun', height: '100%', value: 62000, users: 62000 },
-    ],
+    '30days': dashboardData.weeklyGrowth.map((week, index) => {
+      const maxValue = Math.max(...dashboardData.weeklyGrowth.map(w => w.users), 1);
+      return {
+        week: week.week,
+        height: `${(week.users / maxValue) * 100}%`,
+        value: week.users,
+        users: week.users
+      };
+    }),
+    '3months': dashboardData.weeklyGrowth.map((week, index) => {
+      const maxValue = Math.max(...dashboardData.weeklyGrowth.map(w => w.users), 1);
+      return {
+        week: week.week,
+        height: `${(week.users / maxValue) * 100}%`,
+        value: week.users,
+        users: week.users
+      };
+    }),
+    '6months': dashboardData.weeklyGrowth.map((week, index) => {
+      const maxValue = Math.max(...dashboardData.weeklyGrowth.map(w => w.users), 1);
+      return {
+        week: week.week,
+        height: `${(week.users / maxValue) * 100}%`,
+        value: week.users,
+        users: week.users
+      };
+    }),
   };
 
   const chartData = chartDataSets[chartPeriod];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <AdminSidebar />
+        <main className="lg:ml-64">
+          <div className="flex items-center justify-center h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       {/* Sidebar Component */}
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="lg:ml-64">
         <div className="p-4 sm:p-6 lg:p-8">
           {/* Header */}
           <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 lg:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-            <button className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm">
+            <button 
+              onClick={() => navigate('/admin/vendors')}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm"
+            >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -210,25 +300,26 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="mt-4 sm:mt-6 space-y-4">
-                  {pending.map((item) => (
-                    <div key={item.name} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-4 border-b border-gray-100 last:border-0">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{item.name}</h3>
-                        <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{item.meta}</p>
+                  {pending.length === 0 ? (
+                    <p className="text-sm text-gray-500 text-center py-8">No pending approvals</p>
+                  ) : (
+                    pending.map((item) => (
+                      <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-4 border-b border-gray-100 last:border-0">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{item.name}</h3>
+                          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{item.meta}</p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button 
+                            onClick={() => window.location.href = '/admin/vendors'}
+                            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          >
+                            View
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                          View
-                        </button>
-                        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-                          Deny
-                        </button>
-                        <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-                          Approve
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </section>
             </div>
