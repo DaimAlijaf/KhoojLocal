@@ -256,7 +256,7 @@ export default function LoginPage() {
                     {/* Login as Vendor */}
                     <button
                       onClick={() => navigate("/vendor-dashboard")}
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-md text-sm font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md"
+                      className="w-full bg-[#174f48] text-white py-3 rounded-md text-sm font-medium hover:bg-[#1a5c54] transition-all shadow-md"
                     >
                       Login as Vendor
                     </button>
@@ -371,6 +371,17 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+
+      {/* Admin Login Button - Bottom Right */}
+      <button
+        onClick={() => navigate("/AdminLogin")}
+        className="fixed bottom-6 right-6 bg-[#174f48] text-white px-4 py-2.5 rounded-full shadow-lg hover:shadow-xl hover:bg-[#1a5c54] transition-all duration-200 flex items-center gap-2 text-sm font-medium z-50"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <span>Admin Login</span>
+      </button>
     </div>
   );
 }

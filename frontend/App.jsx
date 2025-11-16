@@ -2,6 +2,12 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 // Import the Login page from pages/Login (file exists at pages/Login/Login.jsx)
 import LoginPage from './pages/Login/Login';
+import AdminLogin from './pages/Admin Pages/AdminLogin';
+import AdminDashboard from './pages/Admin Pages/AdminDashboard';
+import VendorApplicationReview from './pages/Admin Pages/VendorApplicationReview';
+import AdminReviews from './pages/Admin Pages/AdminReviews';
+import AdminUsers from './pages/Admin Pages/AdminUsers';
+import AdminAnalysis from './pages/Admin Pages/AdminAnalysis';
 import MainPage from './pages/User Pages/MainPage';
 import SearchResults from './pages/User Pages/SearchResults';
 import EndUserBusinessDetails from './pages/User Pages/EndUserBsinessDetails';
@@ -20,6 +26,12 @@ function App() {
     <div className="min-h-screen">
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/AdminLogin" element={<AdminLogin />} />
+        <Route path="/AdminDashboard" element={<AdminDashboard />} />
+        <Route path="/admin/vendors" element={<VendorApplicationReview />} />
+        <Route path="/admin/reviews" element={<AdminReviews />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/analytics" element={<AdminAnalysis />} />
         <Route path="/main" element={<MainPage />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/business/:id" element={<EndUserBusinessDetails />} />
