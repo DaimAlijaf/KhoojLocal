@@ -15,6 +15,7 @@ const registerVendor = async (req, res) => {
       address,
       description,
       services,
+      serviceType,
       images,
     } = req.body;
 
@@ -51,6 +52,7 @@ const registerVendor = async (req, res) => {
       address,
       description,
       services,
+      serviceType: serviceType || "both", // booking, ordering, or both
       images: images || { logo: "", banner: "", gallery: [] },
       status: "Pending", // Vendor needs admin approval
     });

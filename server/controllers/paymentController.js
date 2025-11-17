@@ -1,6 +1,6 @@
-// const Payment = require("../models/Payment"); // Payment model not yet created
+const Payment = require("../models/Payment");
 const Booking = require("../models/Booking");
-// const Order = require("../models/Order"); // Order model not yet created
+const Order = require("../models/Order");
 // import Stripe from "stripe";
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);

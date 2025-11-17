@@ -57,9 +57,9 @@ export default function Navbar() {
           {/* Right Nav */}
           <div className="flex items-center gap-3">
             <nav className="hidden md:flex items-center gap-6">
-              <a onClick={() => navigate('/bookings')} className="text-sm font-medium hover:text-teal-600 cursor-pointer">Bookings</a>
+              <a onClick={() => navigate('/my-bookings')} className="text-sm font-medium hover:text-teal-600 cursor-pointer">My Bookings</a>
+              <a onClick={() => navigate('/my-orders')} className="text-sm font-medium hover:text-teal-600 cursor-pointer">My Orders</a>
               <a onClick={() => navigate('/messages')} className="text-sm font-medium hover:text-teal-600 cursor-pointer">Messages</a>
-              <a className="text-sm font-medium hover:text-teal-600" href="#">Orders</a>
             </nav>
 
             <button className="p-2 rounded-md hover:bg-gray-100" aria-label="Notifications">
@@ -109,9 +109,9 @@ export default function Navbar() {
             </form>
           </div>
           <div className="px-4 pb-4 flex flex-col gap-2">
-            <a onClick={() => { navigate('/bookings'); setMobileMenuOpen(false); }} className="text-sm font-medium py-2 hover:text-teal-600 cursor-pointer">Bookings</a>
+            <a onClick={() => { navigate('/my-bookings'); setMobileMenuOpen(false); }} className="text-sm font-medium py-2 hover:text-teal-600 cursor-pointer">My Bookings</a>
+            <a onClick={() => { navigate('/my-orders'); setMobileMenuOpen(false); }} className="text-sm font-medium py-2 hover:text-teal-600 cursor-pointer">My Orders</a>
             <a onClick={() => { navigate('/messages'); setMobileMenuOpen(false); }} className="text-sm font-medium py-2 hover:text-teal-600 cursor-pointer">Messages</a>
-            <a href="#" className="text-sm font-medium py-2 hover:text-teal-600">Orders</a>
             <button
               onClick={handleLogout}
               className="text-sm font-medium py-2 text-left hover:text-teal-600"

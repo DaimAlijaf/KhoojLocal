@@ -54,6 +54,9 @@ const initialState = {
   bankAccount: { bankName: "", accountNumber: "", routingNumber: "" },
   logoFile: null,
   coverFile: null,
+  password: "",
+  confirmPassword: "",
+  serviceType: "both", // "booking", "ordering", or "both"
 };
 
 let serviceIdCounter = 2;
@@ -136,8 +139,11 @@ export default function VendorOnboarding() {
       if (!form.address?.trim()) e.address = "Address is required";
       if (!form.phone?.trim()) e.phone = "Phone is required";
       if (!form.ownerName?.trim()) e.ownerName = "Owner name is required";
-      if (!form.ownerEmail?.trim()) e.ownerEmail = "Owner email is required";
-      if (form.ownerEmail && !/^[^\s]+@[^\s]+\.[^\s]+$/.test(form.ownerEmail)) e.ownerEmail = "Owner email looks invalid";
+      if (!form.ownerEmail?.trim()) e.ownerEmail = "Login email is required";
+      if (form.ownerEmail && !/^[^\s]+@[^\s]+\.[^\s]+$/.test(form.ownerEmail)) e.ownerEmail = "Email looks invalid";
+      if (!form.password?.trim()) e.password = "Password is required";
+      if (form.password && form.password.length < 6) e.password = "Password must be at least 6 characters";
+      if (form.password && form.confirmPassword && form.password !== form.confirmPassword) e.confirmPassword = "Passwords do not match";
       if (!form.ownerPhone?.trim()) e.ownerPhone = "Owner phone is required";
       if (form.email && !/^[^\s]+@[^\s]+\.[^\s]+$/.test(form.email)) e.email = "Email looks invalid";
       if (!form.category) e.category = "Choose a category";
@@ -186,7 +192,7 @@ export default function VendorOnboarding() {
         businessName: form.businessName,
         ownerName: form.ownerName,
         email: form.ownerEmail,
-        password: "vendor123", // In production, collect this from a password field
+        password: form.password,
         phone: form.ownerPhone,
         category: form.category,
         address: {
@@ -198,6 +204,7 @@ export default function VendorOnboarding() {
         },
         description: form.description,
         services: form.services.map(s => s.name).filter(n => n),
+        serviceType: form.serviceType,
         images: {
           logo: form.logoUrl || "",
           banner: form.bannerUrl || "",
@@ -397,7 +404,62 @@ export default function VendorOnboarding() {
               </div>
 
               <div className="pt-4 border-t border-gray-200">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Owner Information</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Service Type</h3>
+                <p className="text-xs sm:text-sm text-gray-600 mb-4">What type of services will you offer?</p>
+                <div className="space-y-3 mb-6">
+                  <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition ${
+                    form.serviceType === "booking" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-indigo-300"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="serviceType"
+                      value="booking"
+                      checked={form.serviceType === "booking"}
+                      onChange={(e) => update({ serviceType: e.target.value })}
+                      className="h-4 w-4 text-indigo-600"
+                    />
+                    <div>
+                      <p className="font-medium text-sm">Booking Only</p>
+                      <p className="text-xs text-gray-500">Appointments, services, reservations (e.g., Salon, Spa, Gym)</p>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition ${
+                    form.serviceType === "ordering" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-indigo-300"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="serviceType"
+                      value="ordering"
+                      checked={form.serviceType === "ordering"}
+                      onChange={(e) => update({ serviceType: e.target.value })}
+                      className="h-4 w-4 text-indigo-600"
+                    />
+                    <div>
+                      <p className="font-medium text-sm">Ordering Only</p>
+                      <p className="text-xs text-gray-500">Products, food, items for delivery/pickup (e.g., Restaurant, Bakery, Florist)</p>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition ${
+                    form.serviceType === "both" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 hover:border-indigo-300"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="serviceType"
+                      value="both"
+                      checked={form.serviceType === "both"}
+                      onChange={(e) => update({ serviceType: e.target.value })}
+                      className="h-4 w-4 text-indigo-600"
+                    />
+                    <div>
+                      <p className="font-medium text-sm">Both Booking & Ordering</p>
+                      <p className="text-xs text-gray-500">Offer both appointments and product orders</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Owner Information & Login Credentials</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Owner Full Name *</label>
@@ -410,14 +472,39 @@ export default function VendorOnboarding() {
                   </div>
 
                   <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Owner Email *</label>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Login Email *</label>
                     <input 
                       value={form.ownerEmail} 
                       onChange={(e)=>update({ ownerEmail: e.target.value })} 
                       className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
-                      placeholder="owner@email.com" 
+                      placeholder="owner@email.com (used for login)" 
                       type="email"
                     />
+                    {errors.ownerEmail && <div className="text-red-600 text-xs sm:text-sm mt-1.5">{errors.ownerEmail}</div>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Password *</label>
+                    <input 
+                      value={form.password || ""} 
+                      onChange={(e)=>update({ password: e.target.value })} 
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
+                      placeholder="Enter password (min 6 characters)" 
+                      type="password"
+                    />
+                    {errors.password && <div className="text-red-600 text-xs sm:text-sm mt-1.5">{errors.password}</div>}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">Confirm Password *</label>
+                    <input 
+                      value={form.confirmPassword || ""} 
+                      onChange={(e)=>update({ confirmPassword: e.target.value })} 
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" 
+                      placeholder="Confirm your password" 
+                      type="password"
+                    />
+                    {errors.confirmPassword && <div className="text-red-600 text-xs sm:text-sm mt-1.5">{errors.confirmPassword}</div>}
                   </div>
 
                   <div>

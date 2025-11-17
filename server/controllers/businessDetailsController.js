@@ -1,6 +1,6 @@
 const Vendor = require("../models/Vendor");
 const Booking = require("../models/Booking");
-// const Order = require("../models/Order"); // Order model not yet created
+const Order = require("../models/Order");
 
 // Helper function to check if business is currently open
 const isBusinessOpen = (businessHours) => {

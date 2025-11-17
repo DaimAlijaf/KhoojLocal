@@ -66,8 +66,25 @@ export default function EndUserBusinessDetails() {
               </div>
             </div>
 
-            <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row gap-3">
-              <button onClick={() => navigate('/booking')} className="flex-1 bg-violet-600 text-white font-semibold py-3 sm:py-3.5 px-4 sm:px-5 rounded-xl hover:bg-violet-700 active:scale-95 transition text-sm sm:text-base">Book / Order Now</button>
+            <div className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                {(business?.serviceType === "ordering" || business?.serviceType === "both") && (
+                  <button 
+                    onClick={() => navigate('/order', { state: { vendor: business } })} 
+                    className="flex-1 bg-indigo-600 text-white font-semibold py-3 sm:py-3.5 px-4 sm:px-5 rounded-xl hover:bg-indigo-700 active:scale-95 transition text-sm sm:text-base"
+                  >
+                    Order Now
+                  </button>
+                )}
+                {(business?.serviceType === "booking" || business?.serviceType === "both") && (
+                  <button 
+                    onClick={() => navigate('/booking', { state: { vendor: business } })} 
+                    className="flex-1 bg-violet-600 text-white font-semibold py-3 sm:py-3.5 px-4 sm:px-5 rounded-xl hover:bg-violet-700 active:scale-95 transition text-sm sm:text-base"
+                  >
+                    Book Now
+                  </button>
+                )}
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 <button className="flex flex-col items-center p-2 sm:p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition"><Phone className="h-5 w-5 text-violet-600"/><span className="text-xs mt-1">Call</span></button>
                 <button className="flex flex-col items-center p-2 sm:p-3 rounded-xl hover:bg-gray-50 active:bg-gray-100 transition"><Navigation className="h-5 w-5 text-violet-600"/><span className="text-xs mt-1">Directions</span></button>

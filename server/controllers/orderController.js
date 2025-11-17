@@ -1,4 +1,4 @@
-// const Order = require("../models/Order"); // Order model not yet created
+const Order = require("../models/Order");
 const Vendor = require("../models/Vendor");
 
 // @desc    Create a new order

@@ -35,15 +35,41 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // BR-12: Booking must be at least 24 hours in advance and ≤ 30 days
+    // BR-12: Booking must be at least 1 hour in advance and ≤ 30 days
+    // Combine bookingDate and bookingTime to create full datetime
     const requestedDate = new Date(bookingDate);
+    
+    // Parse bookingTime - handle both "HH:MM" and "HH:MM AM/PM" formats
+    let hours = 0, minutes = 0;
+    if (bookingTime) {
+      const timeStr = bookingTime.trim().toUpperCase();
+      const isPM = timeStr.includes('PM');
+      const isAM = timeStr.includes('AM');
+      const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+      
+      if (timeMatch) {
+        hours = parseInt(timeMatch[1], 10);
+        minutes = parseInt(timeMatch[2], 10);
+        
+        // Convert to 24-hour format
+        if (isPM && hours !== 12) {
+          hours += 12;
+        } else if (isAM && hours === 12) {
+          hours = 0;
+        }
+      }
+    }
+    
+    requestedDate.setHours(hours, minutes, 0, 0);
+    
     const now = new Date();
     const hoursDiff = (requestedDate - now) / (1000 * 60 * 60);
     const daysDiff = hoursDiff / 24;
 
-    if (hoursDiff < 24) {
+    // Allow bookings with at least 1 hour notice (more flexible)
+    if (hoursDiff < 1) {
       return res.status(400).json({
-        message: "Bookings must be made at least 24 hours in advance",
+        message: "Bookings must be made at least 1 hour in advance",
       });
     }
 
@@ -75,10 +101,7 @@ const createBooking = async (req, res) => {
       totalAmount,
       platformFee,
       tax,
-      status:
-        paymentMethod === "Pay-On-Completion"
-          ? "Pending Vendor Confirmation"
-          : "Pending Payment",
+      status: "Pending Vendor Confirmation", // All bookings start pending vendor confirmation
       autoRejectAt,
     });
 

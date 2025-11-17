@@ -76,6 +76,12 @@ const vendorSchema = new mongoose.Schema({
       type: String,
     },
   ],
+  serviceType: {
+    type: String,
+    enum: ["booking", "ordering", "both"],
+    default: "both",
+    required: true,
+  },
   businessHours: {
     monday: {
       open: String,

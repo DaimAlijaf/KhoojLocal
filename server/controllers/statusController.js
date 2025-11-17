@@ -1,5 +1,5 @@
 const Booking = require("../models/Booking");
-// const Order = require("../models/Order"); // Order model not yet created
+const Order = require("../models/Order");
 
 // ==================== BOOKING STATUS UPDATES ====================
 

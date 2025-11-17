@@ -70,15 +70,37 @@ const acceptBooking = async (req, res) => {
       });
     }
 
-    // Check if booking is in correct status
-    if (booking.status !== "Pending Vendor Confirmation") {
+    // Check if booking is in correct status - allow both pending statuses
+    if (booking.status !== "Pending Vendor Confirmation" && booking.status !== "Pending Payment") {
       return res.status(400).json({
         message: "This booking cannot be accepted",
       });
     }
 
-    // Check if booking time has passed
+    // Check if booking time has passed - combine date and time
     const bookingDateTime = new Date(booking.bookingDate);
+    if (booking.bookingTime) {
+      // Parse bookingTime - handle both "HH:MM" and "HH:MM AM/PM" formats
+      const timeStr = booking.bookingTime.trim().toUpperCase();
+      const isPM = timeStr.includes('PM');
+      const isAM = timeStr.includes('AM');
+      const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+      
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2], 10);
+        
+        // Convert to 24-hour format
+        if (isPM && hours !== 12) {
+          hours += 12;
+        } else if (isAM && hours === 12) {
+          hours = 0;
+        }
+        
+        bookingDateTime.setHours(hours, minutes, 0, 0);
+      }
+    }
+    
     if (bookingDateTime < new Date()) {
       booking.status = "Auto-Rejected";
       await booking.save();

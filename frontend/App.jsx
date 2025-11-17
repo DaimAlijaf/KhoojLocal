@@ -14,6 +14,9 @@ import SearchResults from './pages/User Pages/SearchResults';
 import EndUserBusinessDetails from './pages/User Pages/EndUserBsinessDetails';
 import UserBooking from './pages/User Pages/UserBooking';
 import OverallBookings from './pages/User Pages/OverallBookings';
+import UserBookings from './pages/User Pages/UserBookings';
+import UserOrders from './pages/User Pages/UserOrders';
+import OrderPlacement from './pages/User Pages/OrderPlacement';
 import UserMessages from './pages/User Pages/User-Messages';
 import VendorReg from './pages/Vendor Pages/VendorReg.jsx';
 import VendorDashboard from './pages/Vendor Pages/VendorDashboard.jsx';
@@ -39,6 +42,9 @@ function App() {
         <Route path="/business/:id" element={<EndUserBusinessDetails />} />
         <Route path="/booking" element={<UserBooking />} />
         <Route path="/bookings" element={<OverallBookings />} />
+        <Route path="/my-bookings" element={<UserBookings />} />
+        <Route path="/my-orders" element={<UserOrders />} />
+        <Route path="/order" element={<OrderPlacement />} />
         <Route path="/messages" element={<UserMessages />} />
         <Route path="/vendor-register" element={<VendorReg />} />
         <Route path="/vendor-dashboard" element={<VendorDashboard />} />

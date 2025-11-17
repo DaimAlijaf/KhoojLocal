@@ -3,180 +3,164 @@
 
 import React, { useState, useEffect } from 'react';
 import VendorSidebar from '../../components/VendorSidebar';
+import axios from 'axios';
 
-const SAMPLE = [
-  // Pending Bookings
-  {
-    id: 1,
-    name: 'Aisha Sharma',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBZaQkPXZY79EfdQPN_lyxA7FAOquhyeWS8ri0zQEH2PVmI6Hrfi1Cdr0cAFu1v7JPNJRHn-n8flh4AhIQzrEvch3vm2Wi8xqDBo5KBuoQVhoEOojMsBOhmj3wv9oTRpIbiwDfw1yv_2zDmmEWeSk_dy2XODlvRFJUcr3kqd5kEtdUXUh0JNtpdz-IOE3TxUFSgWA2gbv9fNOSIVlaCRDYxiX4oB1rLdnmT-07L03aU1HJCaiH-TZS7QyJDTUXksIFD1MRmPP7gFQSs',
-    service: 'Deep Tissue Massage - 60 min',
-    date: 'Mon, Oct 28',
-    time: '2:00 PM',
-    price: '$75.00',
-    notes: 'Looking forward to it! Please focus on my upper back and shoulders.',
-    status: 'pending',
-  },
-  {
-    id: 2,
-    name: 'Rohan Patel',
-    avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCd2C-sB96G4XWqXleJJzfuMIH_rqbjTbmUEvKumafzWFDSxFfVp4vcWZ7ZXYkDXLGmtONOBks74LGUSgH2avqz94U35QBoWQzUt47O7pqR-sFZymOygb1zsqtsum9NxVzWsr-FRHCZX8Yr0ONmZI4CWSwEsTJzMiCKR-awMUN7TdU1nsU_fOY2qAv2-j4i7Mwd5I3ml1qgPpKvBs49ZQMYFg8YvThsaCyl8kT5nTYtIv-GflvOZIO7x3ScjFHwbIvXu8hfd-4ovttr',
-    service: 'Haircut & Style',
-    date: 'Mon, Oct 28',
-    time: '4:30 PM',
-    price: '$40.00',
-    notes: '',
-    status: 'pending',
-  },
-  {
-    id: 3,
-    name: 'Priya Kumar',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-    service: 'Bridal Makeup',
-    date: 'Tue, Oct 29',
-    time: '10:00 AM',
-    price: '$150.00',
-    notes: 'Wedding on Nov 5th. Need a trial session first.',
-    status: 'pending',
-  },
+// Helper function to format date
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}`;
+};
 
-  // Active Bookings
-  {
-    id: 4,
-    name: 'Vikram Singh',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    service: 'Personal Training - 1 Hour',
-    date: 'Wed, Oct 30',
-    time: '6:00 AM',
-    price: '$50.00',
-    notes: 'Regular morning session. Focus on cardio today.',
-    status: 'active',
-  },
-  {
-    id: 5,
-    name: 'Sneha Reddy',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
-    service: 'Spa Package - 90 min',
-    date: 'Wed, Oct 30',
-    time: '2:00 PM',
-    price: '$120.00',
-    notes: 'Anniversary gift. Please include aromatherapy.',
-    status: 'active',
-  },
-  {
-    id: 6,
-    name: 'Arjun Mehta',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop',
-    service: 'Beard Trim & Styling',
-    date: 'Thu, Oct 31',
-    time: '11:00 AM',
-    price: '$25.00',
-    notes: '',
-    status: 'active',
-  },
-  {
-    id: 7,
-    name: 'Meera Joshi',
-    avatar: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop',
-    service: 'Yoga Class - Group',
-    date: 'Thu, Oct 31',
-    time: '7:00 PM',
-    price: '$30.00',
-    notes: 'First time joining. Beginner level please.',
-    status: 'active',
-  },
+// Helper function to get avatar from name
+const getAvatarFromName = (name) => {
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=indigo&color=fff&size=128`;
+};
 
-  // Completed Bookings
-  {
-    id: 8,
-    name: 'Rajesh Gupta',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop',
-    service: 'Hair Color & Highlights',
-    date: 'Sat, Oct 26',
-    time: '3:00 PM',
-    price: '$85.00',
-    notes: 'Natural brown color with subtle highlights.',
-    status: 'completed',
-  },
-  {
-    id: 9,
-    name: 'Kavya Nair',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop',
-    service: 'Manicure & Pedicure',
-    date: 'Sun, Oct 27',
-    time: '12:00 PM',
-    price: '$45.00',
-    notes: 'Red nail polish, gel finish.',
-    status: 'completed',
-  },
-  {
-    id: 10,
-    name: 'Amit Desai',
-    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop',
-    service: 'Swedish Massage - 60 min',
-    date: 'Sun, Oct 27',
-    time: '4:00 PM',
-    price: '$70.00',
-    notes: 'Medium pressure. Had a great experience!',
-    status: 'completed',
-  },
-  {
-    id: 11,
-    name: 'Divya Shah',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop',
-    service: 'Facial Treatment - Premium',
-    date: 'Mon, Oct 28',
-    time: '10:00 AM',
-    price: '$95.00',
-    notes: 'Skin looks amazing! Thank you!',
-    status: 'completed',
-  },
-
-  // Canceled Bookings
-  {
-    id: 12,
-    name: 'Karan Malhotra',
-    avatar: 'https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=150&h=150&fit=crop',
-    service: 'Haircut & Shave',
-    date: 'Fri, Oct 25',
-    time: '5:00 PM',
-    price: '$35.00',
-    notes: 'Had to cancel due to emergency.',
-    status: 'canceled',
-  },
-  {
-    id: 13,
-    name: 'Anjali Verma',
-    avatar: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=150&h=150&fit=crop',
-    service: 'Hair Spa Treatment',
-    date: 'Sat, Oct 26',
-    time: '1:00 PM',
-    price: '$60.00',
-    notes: 'Rescheduling for next week.',
-    status: 'canceled',
-  },
-  {
-    id: 14,
-    name: 'Sanjay Kumar',
-    avatar: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=150&h=150&fit=crop',
-    service: 'Body Massage - 90 min',
-    date: 'Sun, Oct 27',
-    time: '9:00 AM',
-    price: '$100.00',
-    notes: 'Changed plans for the weekend.',
-    status: 'canceled',
-  },
-];
+// Map API status to component status
+const mapStatus = (apiStatus, type = 'booking') => {
+  if (type === 'order') {
+    if (['Pending Payment', 'Pending Vendor Confirmation'].includes(apiStatus)) return 'pending';
+    if (['Confirmed', 'In Progress', 'Out for Delivery', 'Ready for Pickup'].includes(apiStatus)) return 'active';
+    if (apiStatus === 'Completed') return 'completed';
+    if (['Cancelled', 'Rejected', 'Auto-Rejected'].includes(apiStatus)) return 'canceled';
+  } else {
+    if (['Pending Payment', 'Pending Vendor Confirmation'].includes(apiStatus)) return 'pending';
+    if (['Confirmed', 'In Progress'].includes(apiStatus)) return 'active';
+    if (apiStatus === 'Completed') return 'completed';
+    if (['Cancelled', 'Rejected', 'Auto-Rejected'].includes(apiStatus)) return 'canceled';
+  }
+  return 'pending';
+};
 
 export default function BookingManagement() {
-  const [bookings] = useState(SAMPLE);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState('pending');
+  const [vendorServiceType, setVendorServiceType] = useState('both');
 
-  // Filter bookings based on active tab
-  const filteredBookings = bookings.filter(booking => booking.status === activeTab);
+  useEffect(() => {
+    fetchVendorProfile();
+  }, []);
+
+  useEffect(() => {
+    if (vendorServiceType) {
+      fetchData();
+    }
+  }, [activeTab, vendorServiceType]);
+
+  const fetchVendorProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await axios.get("http://localhost:5000/api/auth/vendor/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (response.data.serviceType) {
+        setVendorServiceType(response.data.serviceType);
+      }
+    } catch (error) {
+      console.error("Error fetching vendor profile:", error);
+    }
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
+      const allItems = [];
+
+      // Fetch bookings if vendor offers booking services
+      if (vendorServiceType === 'booking' || vendorServiceType === 'both') {
+        try {
+          const bookingsResponse = await axios.get(
+            "http://localhost:5000/api/auth/vendor/vendor/bookings",
+            { headers }
+          );
+          
+          if (bookingsResponse.data.success && bookingsResponse.data.bookings) {
+            const mappedBookings = bookingsResponse.data.bookings.map((booking) => ({
+              id: booking._id,
+              type: 'booking',
+              name: booking.user?.name || 'Unknown User',
+              avatar: getAvatarFromName(booking.user?.name || 'User'),
+              service: booking.serviceType || 'Service',
+              date: formatDate(booking.bookingDate),
+              time: booking.bookingTime || 'N/A',
+              price: `$${booking.totalAmount?.toFixed(2) || '0.00'}`,
+              notes: booking.notes || '',
+              status: mapStatus(booking.status, 'booking'),
+              originalStatus: booking.status,
+              bookingDate: booking.bookingDate,
+              paymentStatus: booking.paymentStatus,
+              paymentMethod: booking.paymentMethod,
+              user: booking.user,
+            }));
+            allItems.push(...mappedBookings);
+          }
+        } catch (error) {
+          console.error("Error fetching bookings:", error);
+        }
+      }
+
+      // Fetch orders if vendor offers ordering services
+      if (vendorServiceType === 'ordering' || vendorServiceType === 'both') {
+        try {
+          const ordersResponse = await axios.get(
+            "http://localhost:5000/api/auth/vendor/vendor/orders",
+            { headers }
+          );
+          
+          if (ordersResponse.data.success && ordersResponse.data.orders) {
+            const mappedOrders = ordersResponse.data.orders.map((order) => ({
+              id: order._id,
+              type: 'order',
+              name: order.user?.name || 'Unknown User',
+              avatar: getAvatarFromName(order.user?.name || 'User'),
+              service: `${order.items?.length || 0} item(s) - ${order.orderType || 'Order'}`,
+              date: formatDate(order.createdAt),
+              time: order.estimatedDeliveryTime ? formatDate(order.estimatedDeliveryTime) : 'N/A',
+              price: `$${order.totalAmount?.toFixed(2) || '0.00'}`,
+              notes: order.specialInstructions || '',
+              status: mapStatus(order.status, 'order'),
+              originalStatus: order.status,
+              orderType: order.orderType,
+              items: order.items,
+              paymentStatus: order.paymentStatus,
+              paymentMethod: order.paymentMethod,
+              user: order.user,
+            }));
+            allItems.push(...mappedOrders);
+          }
+        } catch (error) {
+          console.error("Error fetching orders:", error);
+        }
+      }
+
+      setBookings(allItems);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter items based on active tab
+  const filteredBookings = bookings.filter(item => item.status === activeTab);
 
   // Get counts for each status
   const statusCounts = {
@@ -202,20 +186,101 @@ export default function BookingManagement() {
     setSelected(null);
   }
 
-  function acceptBooking() {
-    setToast({ type: 'success', message: 'Booking successfully accepted.' });
-    closeModal();
-  }
+  const acceptBooking = async () => {
+    if (!selected) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setToast({ type: 'error', message: 'Please login again' });
+        return;
+      }
 
-  function rejectBooking() {
-    setToast({ type: 'error', message: 'Booking rejected.' });
-    closeModal();
-  }
+      const endpoint = selected.type === 'booking' 
+        ? `http://localhost:5000/api/auth/vendor/vendor/bookings/${selected.id}/accept`
+        : `http://localhost:5000/api/auth/vendor/vendor/orders/${selected.id}/accept`;
 
-  function rescheduleBooking() {
-    setToast({ type: 'info', message: 'Open reschedule flow (not implemented).' });
-    closeModal();
-  }
+      const response = await axios.put(endpoint, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        setToast({ type: 'success', message: `${selected.type === 'booking' ? 'Booking' : 'Order'} successfully accepted.` });
+        closeModal();
+        fetchData();
+      }
+    } catch (error) {
+      console.error("Error accepting:", error);
+      setToast({ type: 'error', message: error.response?.data?.message || 'Failed to accept' });
+    }
+  };
+
+  const rejectBooking = async () => {
+    if (!selected) return;
+    
+    const reason = window.prompt("Please provide a reason for rejection:");
+    if (!reason) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setToast({ type: 'error', message: 'Please login again' });
+        return;
+      }
+
+      const endpoint = selected.type === 'booking'
+        ? `http://localhost:5000/api/auth/vendor/vendor/bookings/${selected.id}/reject`
+        : `http://localhost:5000/api/auth/vendor/vendor/orders/${selected.id}/reject`;
+
+      const response = await axios.put(endpoint, { rejectionReason: reason }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        setToast({ type: 'success', message: `${selected.type === 'booking' ? 'Booking' : 'Order'} rejected.` });
+        closeModal();
+        fetchData();
+      }
+    } catch (error) {
+      console.error("Error rejecting:", error);
+      setToast({ type: 'error', message: error.response?.data?.message || 'Failed to reject' });
+    }
+  };
+
+  const rescheduleBooking = async () => {
+    if (!selected || selected.type !== 'booking') {
+      setToast({ type: 'info', message: 'Reschedule is only available for bookings.' });
+      return;
+    }
+
+    const newDate = window.prompt("Enter new date (YYYY-MM-DD):");
+    const newTime = window.prompt("Enter new time (HH:MM):");
+    
+    if (!newDate || !newTime) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setToast({ type: 'error', message: 'Please login again' });
+        return;
+      }
+
+      const response = await axios.put(
+        `http://localhost:5000/api/auth/vendor/vendor/bookings/${selected.id}/reschedule`,
+        { proposedDate: newDate, proposedTime: newTime },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        setToast({ type: 'success', message: 'Reschedule proposal sent to customer.' });
+        closeModal();
+        fetchData();
+      }
+    } catch (error) {
+      console.error("Error rescheduling:", error);
+      setToast({ type: 'error', message: error.response?.data?.message || 'Failed to reschedule' });
+    }
+  };
 
   function getStatusBadgeColor(status) {
     const colors = {
@@ -237,11 +302,11 @@ export default function BookingManagement() {
           {/* Main content */}
           <main className="flex-1 w-full lg:w-auto mt-16 lg:mt-0">
             <div className="flex items-center justify-between mb-6 flex-col sm:flex-row gap-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Bookings & Orders</h1>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow-md transition-colors">
-                <PlusIcon />
-                <span>Create Booking</span>
-              </button>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                {vendorServiceType === 'both' ? 'Bookings & Orders' : 
+                 vendorServiceType === 'booking' ? 'Bookings' : 
+                 'Orders'}
+              </h1>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-x-auto">
@@ -285,50 +350,64 @@ export default function BookingManagement() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              {filteredBookings.map((b) => (
-                <article key={b.id} className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-cover bg-center flex-shrink-0" style={{ backgroundImage: `url(${b.avatar})` }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{b.name}</h3>
-                        <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${getStatusBadgeColor(b.status)}`}>
-                          {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
-                        </span>
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                {filteredBookings.map((b) => (
+                  <article key={b.id} className="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-cover bg-center flex-shrink-0" style={{ backgroundImage: `url(${b.avatar})` }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2 mb-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{b.name}</h3>
+                            {b.type === 'order' && (
+                              <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded">Order</span>
+                            )}
+                            {b.type === 'booking' && (
+                              <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 text-xs rounded">Booking</span>
+                            )}
+                          </div>
+                          <span className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${getStatusBadgeColor(b.status)}`}>
+                            {b.status.charAt(0).toUpperCase() + b.status.slice(1)}
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-1">{b.service}</p>
                       </div>
-                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-1">{b.service}</p>
                     </div>
-                  </div>
 
-                  <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
-                      <div className="flex items-center gap-1 sm:gap-1.5">
-                        <CalendarIcon />
-                        <span className="truncate">{b.date}</span>
+                    <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
+                        <div className="flex items-center gap-1 sm:gap-1.5">
+                          <CalendarIcon />
+                          <span className="truncate">{b.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-1.5">
+                          <ClockIcon />
+                          <span>{b.time}</span>
+                        </div>
+                        <div className="font-bold text-gray-900 ml-auto text-sm sm:text-base">{b.price}</div>
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-1.5">
-                        <ClockIcon />
-                        <span>{b.time}</span>
-                      </div>
-                      <div className="font-bold text-gray-900 ml-auto text-sm sm:text-base">{b.price}</div>
+                      <button onClick={() => openDetails(b)} className="text-indigo-600 font-semibold text-xs sm:text-sm hover:text-indigo-700 transition-colors">
+                        View Details →
+                      </button>
                     </div>
-                    <button onClick={() => openDetails(b)} className="text-indigo-600 font-semibold text-xs sm:text-sm hover:text-indigo-700 transition-colors">
-                      View Details →
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                ))}
+              </div>
+            )}
 
             {/* Empty state */}
-            {filteredBookings.length === 0 && (
+            {!loading && filteredBookings.length === 0 && (
               <div className="mt-16 text-center py-12 bg-white rounded-2xl border border-gray-200">
                 <div className="text-gray-400 mb-4 flex justify-center">
                   <CalendarIcon />
                 </div>
-                <p className="text-gray-500 font-medium mb-1">No {activeTab} bookings</p>
-                <p className="text-gray-400 text-sm">Check other tabs or create a new booking</p>
+                <p className="text-gray-500 font-medium mb-1">No {activeTab} {vendorServiceType === 'both' ? 'bookings or orders' : vendorServiceType === 'booking' ? 'bookings' : 'orders'}</p>
+                <p className="text-gray-400 text-sm">Check other tabs or wait for new requests</p>
               </div>
             )}
           </main>
@@ -360,10 +439,15 @@ export default function BookingManagement() {
                 <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                   <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500 text-xs sm:text-sm mb-1">
                     <CalendarIcon />
-                    <span>Date & Time</span>
+                    <span>{selected.type === 'order' ? 'Order Date' : 'Date & Time'}</span>
                   </div>
                   <p className="font-semibold text-gray-900 text-sm sm:text-base">{selected.date}</p>
-                  <p className="font-semibold text-gray-900 text-sm sm:text-base">{selected.time}</p>
+                  {selected.type === 'booking' && (
+                    <p className="font-semibold text-gray-900 text-sm sm:text-base">{selected.time}</p>
+                  )}
+                  {selected.type === 'order' && selected.orderType && (
+                    <p className="text-xs text-gray-600 mt-1">Type: {selected.orderType}</p>
+                  )}
                 </div>
                 <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                   <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500 text-xs sm:text-sm mb-1">
@@ -371,27 +455,70 @@ export default function BookingManagement() {
                     <span>Total Cost</span>
                   </div>
                   <p className="font-bold text-gray-900 text-lg sm:text-xl">{selected.price}</p>
+                  {selected.paymentStatus && (
+                    <p className="text-xs text-gray-600 mt-1">Payment: {selected.paymentStatus}</p>
+                  )}
                 </div>
               </div>
 
+              {selected.type === 'order' && selected.items && selected.items.length > 0 && (
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Order Items</p>
+                  <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                    {selected.items.map((item, idx) => (
+                      <div key={idx} className="flex justify-between text-xs sm:text-sm">
+                        <span>{item.name || `Item ${idx + 1}`} x {item.quantity || 1}</span>
+                        <span className="font-medium">${(item.price * (item.quantity || 1)).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Customer Notes</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                  {selected.type === 'order' ? 'Special Instructions' : 'Customer Notes'}
+                </p>
                 <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <p className="text-xs sm:text-sm text-gray-700">{selected.notes || 'No notes provided'}</p>
                 </div>
               </div>
+
+              {selected.user && (
+                <div>
+                  <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Customer Information</p>
+                  <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-700">Name: {selected.user.name || 'N/A'}</p>
+                    <p className="text-xs sm:text-sm text-gray-700">Email: {selected.user.email || 'N/A'}</p>
+                    {selected.user.phone && (
+                      <p className="text-xs sm:text-sm text-gray-700">Phone: {selected.user.phone}</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="p-4 sm:p-6 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-end items-stretch sm:items-center gap-2 sm:gap-3">
-              <button onClick={rejectBooking} className="px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors order-3 sm:order-1">
-                Reject
-              </button>
-              <button onClick={rescheduleBooking} className="px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors order-2 sm:order-2">
-                Reschedule
-              </button>
-              <button onClick={acceptBooking} className="px-5 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md transition-colors order-1 sm:order-3">
-                Accept Booking
-              </button>
+              {selected.status === 'pending' && (
+                <>
+                  <button onClick={rejectBooking} className="px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors order-3 sm:order-1">
+                    Reject
+                  </button>
+                  {selected.type === 'booking' && (
+                    <button onClick={rescheduleBooking} className="px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors order-2 sm:order-2">
+                    Reschedule
+                  </button>
+                  )}
+                  <button onClick={acceptBooking} className="px-5 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md transition-colors order-1 sm:order-3">
+                    Accept {selected.type === 'booking' ? 'Booking' : 'Order'}
+                  </button>
+                </>
+              )}
+              {selected.status !== 'pending' && (
+                <div className="text-sm text-gray-600">
+                  This {selected.type === 'booking' ? 'booking' : 'order'} is {selected.status} and cannot be modified.
+                </div>
+              )}
             </div>
           </div>
         </div>

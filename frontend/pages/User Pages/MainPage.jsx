@@ -261,12 +261,30 @@ export default function MainPage() {
                               <span className="text-xs text-gray-500">{vendor.address.city}</span>
                             )}
                           </div>
-                          <button 
-                            onClick={() => navigate(`/business/${vendor._id}`, { state: { business: vendor } })}
-                            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition active:scale-95"
-                          >
-                            View Details
-                          </button>
+                          <div className="flex gap-2">
+                            {(vendor.serviceType === "ordering" || vendor.serviceType === "both") && (
+                              <button 
+                                onClick={() => navigate(`/order`, { state: { vendor: vendor } })}
+                                className="px-3 py-2 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition active:scale-95"
+                              >
+                                Order
+                              </button>
+                            )}
+                            {(vendor.serviceType === "booking" || vendor.serviceType === "both") && (
+                              <button 
+                                onClick={() => navigate(`/booking`, { state: { vendor: vendor } })}
+                                className="px-3 py-2 text-xs font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition active:scale-95"
+                              >
+                                Book
+                              </button>
+                            )}
+                            <button 
+                              onClick={() => navigate(`/business/${vendor._id}`, { state: { business: vendor } })}
+                              className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition active:scale-95"
+                            >
+                              Details
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
