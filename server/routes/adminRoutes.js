@@ -1,11 +1,10 @@
-
-import express from 'express';
+const express = require('express');
 const router = express.Router();
-import { protect,adminOnly } from '../middleware/authMiddleware.js';
+const { protect, adminOnly } = require('../middleware/authMiddleware');
 
-import { loginAdmin,
+const { loginAdmin,
   getAdminProfile,
-  getDashboardStats, } from '../controllers/adminController.js';
+  getDashboardStats } = require('../controllers/adminController');
 
 // Public routes
 router.post('/login', loginAdmin);
@@ -15,4 +14,4 @@ router.get('/profile', protect, adminOnly, getAdminProfile);
 router.get('/dashboard-stats', protect, adminOnly, getDashboardStats);
 
 
-export default router
+module.exports = router;

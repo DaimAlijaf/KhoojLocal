@@ -1,5 +1,5 @@
-import Booking from "../models/Booking.js";
-import Order from "../models/Order.js";
+const Booking = require("../models/Booking");
+// const Order = require("../models/Order"); // Order model not yet created
 
 
 // @desc    Get vendor's incoming booking requests
@@ -366,7 +366,7 @@ const rejectOrder = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   // Booking handlers
   getVendorBookings,
   getPendingBookings,

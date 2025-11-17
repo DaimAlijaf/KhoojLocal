@@ -1,5 +1,5 @@
-import Booking from "../models/Booking.js";
-import Order from "../models/Order.js";
+const Booking = require("../models/Booking");
+// const Order = require("../models/Order"); // Order model not yet created
 
 // ==================== BOOKING STATUS UPDATES ====================
 
@@ -312,7 +312,7 @@ const getOrderStatusHistory = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   // Booking status
   updateBookingStatus,
   getActiveBookings,

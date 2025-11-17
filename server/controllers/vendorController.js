@@ -1,5 +1,5 @@
-import Vendor from "../models/Vendor.js";
-import generateToken from "../utils/generateToken.js";
+const Vendor = require("../models/Vendor");
+const generateToken = require("../utils/generateToken");
 // @desc    Register new vendor
 // @route   POST /api/auth/vendor/register
 // @access  Public
@@ -195,4 +195,4 @@ const updateVendorProfile = async (req, res) => {
   }
 };
 
-export { registerVendor, loginVendor, getVendorProfile, updateVendorProfile };
+module.exports = { registerVendor, loginVendor, getVendorProfile, updateVendorProfile };

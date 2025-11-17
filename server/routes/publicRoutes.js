@@ -1,24 +1,24 @@
-import express from "express";
+const express = require("express");
 const router = express.Router();
-import {
+const {
   getApprovedVendors,
   getVendorById,
-} from "../controllers/publicController.js";
-import {
+} = require("../controllers/publicController");
+const {
   getCategories,
   getNearbyBusinesses,
   searchBusinesses,
-} from "../controllers/enhancedSearchController.js";
-import {
+} = require("../controllers/enhancedSearchController");
+const {
   getBusinessContact,
   getBusinessDetails,
   getBusinessHours,
   getBusinessImages,
   getBusinessServices,
   getBusinessStats,
-} from "../controllers/businessDetailsController.js";
-import { checkAvailability } from "../controllers/bookingController.js";
-import { handleStripeWebhook } from "../controllers/paymentController.js";
+} = require("../controllers/businessDetailsController");
+const { checkAvailability } = require("../controllers/bookingController");
+const { handleStripeWebhook } = require("../controllers/paymentController");
 
 // Public routes
 router.get("/", getApprovedVendors);
@@ -43,4 +43,4 @@ router.get("/bookings/check-availability", checkAvailability);
 // Stripe Webhook (Public - but verified internally)
 router.post("/payments/webhook", handleStripeWebhook);
 
-export default router;
+module.exports = router;

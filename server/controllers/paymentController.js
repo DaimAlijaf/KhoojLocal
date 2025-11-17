@@ -1,6 +1,6 @@
-import Payment from "../models/Payment.js";
-import Booking from "../models/Booking.js";
-import Order from "../models/Order.js";
+// const Payment = require("../models/Payment"); // Payment model not yet created
+const Booking = require("../models/Booking");
+// const Order = require("../models/Order"); // Order model not yet created
 // import Stripe from "stripe";
 
 // const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -383,7 +383,7 @@ const handleStripeWebhook = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   createPaymentIntent,
   confirmPayment,
   getPaymentById,

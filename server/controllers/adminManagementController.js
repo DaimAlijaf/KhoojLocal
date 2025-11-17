@@ -1,5 +1,5 @@
-import User from "../models/User.js";
-import Vendor from "../models/Vendor.js";
+const User = require("../models/User");
+const Vendor = require("../models/Vendor");
 // @desc    Get all users (Admin only)
 // @route   GET /api/admin/users
 // @access  Private/Admin
@@ -175,7 +175,7 @@ const deleteVendor = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   getAllUsers,
   getAllVendors,
   getPendingVendors,

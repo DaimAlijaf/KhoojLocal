@@ -1,4 +1,4 @@
-import Vendor from "../models/Vendor.js";
+const Vendor = require("../models/Vendor");
 
 // Helper function to calculate distance between two coordinates (Haversine formula)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -362,7 +362,7 @@ const getCategories = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   searchBusinesses,
   getRecommendations,
   getNearbyBusinesses,

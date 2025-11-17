@@ -1,7 +1,7 @@
-import express from 'express';
+const express = require('express');
 const router = express.Router();
-import { protect,adminOnly } from '../middleware/authMiddleware.js';
-import {
+const { protect, adminOnly } = require('../middleware/authMiddleware');
+const {
   getAllUsers,
   getAllVendors,
   getPendingVendors,
@@ -9,7 +9,7 @@ import {
   updateVendorStatus,
   deleteUser,
   deleteVendor,
-} from '../controllers/adminManagementController.js';
+} = require('../controllers/adminManagementController');
 
 
 // All routes require admin authentication
@@ -27,4 +27,4 @@ router.put('/vendors/:id', updateVendorStatus);
 router.delete('/vendors/:id', deleteVendor);
 
 
-export default router
+module.exports = router;

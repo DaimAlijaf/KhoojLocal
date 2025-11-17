@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const vendorSchema = new mongoose.Schema({
   businessName: {
     type: String,
@@ -165,4 +165,4 @@ vendorSchema.methods.comparePassword = async function (enteredPassword) {
 };
 const Vendor = mongoose.model("Vendor", vendorSchema);
 
-export default Vendor;
+module.exports = Vendor;

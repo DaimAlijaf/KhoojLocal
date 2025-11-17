@@ -1,6 +1,6 @@
-import Vendor from "../models/Vendor.js";
-import Booking from "../models/Booking.js";
-import Order from "../models/Order.js";
+const Vendor = require("../models/Vendor");
+const Booking = require("../models/Booking");
+// const Order = require("../models/Order"); // Order model not yet created
 
 // Helper function to check if business is currently open
 const isBusinessOpen = (businessHours) => {
@@ -329,7 +329,7 @@ const getBusinessStats = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   getBusinessDetails,
   getBusinessServices,
   getBusinessContact,

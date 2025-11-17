@@ -1,5 +1,5 @@
-import User from "../models/User.js";
-import generateToken from "../utils/generateToken.js";
+const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
 // @desc    Register new user
 // @route   POST /api/auth/user/register
 // @access  Public
@@ -126,4 +126,4 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, getUserProfile };
+module.exports = { registerUser, loginUser, getUserProfile };

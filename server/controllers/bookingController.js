@@ -1,5 +1,5 @@
-import Booking from "../models/Booking.js";
-import Vendor from "../models/Vendor.js";
+const Booking = require("../models/Booking");
+const Vendor = require("../models/Vendor");
 
 // @desc    Create a new booking
 // @route   POST /api/bookings
@@ -269,7 +269,7 @@ const checkAvailability = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   createBooking,
   getUserBookings,
   getBookingById,

@@ -1,5 +1,5 @@
-import Order from "../models/Order.js";
-import Vendor from "../models/Vendor.js";
+// const Order = require("../models/Order"); // Order model not yet created
+const Vendor = require("../models/Vendor");
 
 // @desc    Create a new order
 // @route   POST /api/orders
@@ -261,4 +261,4 @@ const validateCart = async (req, res) => {
   }
 };
 
-export { createOrder, getUserOrders, getOrderById, cancelOrder, validateCart };
+module.exports = { createOrder, getUserOrders, getOrderById, cancelOrder, validateCart };

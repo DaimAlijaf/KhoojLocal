@@ -1,17 +1,17 @@
-import express from "express";
+const express = require("express");
 const router = express.Router();
 
-import { protect } from "../middleware/authMiddleware.js";
+const { protect } = require("../middleware/authMiddleware");
 
-import {
+const {
   registerVendor,
   loginVendor,
   getVendorProfile,
   updateVendorProfile,
-} from "../controllers/vendorController.js";
-import { acceptBooking, acceptOrder, getPendingBookings, getPendingOrders, getVendorBookings, getVendorOrders, rejectBooking, rejectOrder, rescheduleBooking } from "../controllers/vendorRequestController.js";
-import { getActiveBookings, getActiveOrders, updateBookingStatus, updateDeliveryTime, updateOrderStatus } from "../controllers/statusController.js";
-import { getVendorPayments, processRefund } from "../controllers/paymentController.js";
+} = require("../controllers/vendorController");
+const { acceptBooking, acceptOrder, getPendingBookings, getPendingOrders, getVendorBookings, getVendorOrders, rejectBooking, rejectOrder, rescheduleBooking } = require("../controllers/vendorRequestController");
+const { getActiveBookings, getActiveOrders, updateBookingStatus, updateDeliveryTime, updateOrderStatus } = require("../controllers/statusController");
+const { getVendorPayments, processRefund } = require("../controllers/paymentController");
 
 // Public routes
 router.post("/register", registerVendor);
@@ -42,4 +42,4 @@ router.put("/vendor/orders/:id/delivery-time", protect, updateDeliveryTime);
 // Vendor Payment Management
 router.get("/vendor/payments", protect, getVendorPayments);
 router.post("/payments/:id/refund", protect, processRefund);
-export default router;
+module.exports = router;

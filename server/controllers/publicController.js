@@ -1,4 +1,4 @@
-import Vendor from "../models/Vendor.js";
+const Vendor = require("../models/Vendor");
 // @desc    Get approved vendors for public search
 // @route   GET /api/vendors
 // @access  Public
@@ -56,4 +56,4 @@ const getVendorById = async (req, res) => {
   }
 };
 
-export { getApprovedVendors, getVendorById };
+module.exports = { getApprovedVendors, getVendorById };

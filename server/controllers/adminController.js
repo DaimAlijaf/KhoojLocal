@@ -1,7 +1,7 @@
-import Admin from "../models/Admin.js";
-import User from "../models/User.js";
-import Vendor from "../models/Vendor.js";
-import generateToken from "../utils/generateToken.js";
+const Admin = require("../models/Admin");
+const User = require("../models/User");
+const Vendor = require("../models/Vendor");
+const generateToken = require("../utils/generateToken");
 
 // @desc    Login admin
 // @route   POST /api/auth/admin/login
@@ -146,4 +146,4 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-export { loginAdmin, getAdminProfile, getDashboardStats };
+module.exports = { loginAdmin, getAdminProfile, getDashboardStats };
